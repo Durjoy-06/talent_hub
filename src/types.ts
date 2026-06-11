@@ -330,3 +330,74 @@ export const GENERAL_STATS = {
   connectedHubs: 8,
   placedTalents: 1420
 };
+
+export interface LoggedInUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'organizer';
+  avatar?: string;
+  division?: string;
+  university?: string;
+  skills?: string[];
+  bio?: string;
+  github?: string;
+  linkedin?: string;
+}
+
+export interface Application {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentUniversity: string;
+  studentDivision: string;
+  opportunityId: string;
+  opportunityTitle: string;
+  organization: string;
+  status: 'Under Review' | 'Shortlisted' | 'Interviewing' | 'Offer Received' | 'Declined';
+  dateApplied: string;
+}
+
+export const INITIAL_APPLICATIONS: Application[] = [
+  {
+    id: 'app1',
+    studentId: 'stud1',
+    studentName: 'Zareen Subah',
+    studentEmail: 'zareen.subah@buet.ac.bd',
+    studentUniversity: 'BUET',
+    studentDivision: 'Dhaka',
+    opportunityId: 'o1',
+    opportunityTitle: 'Frontend Engineer (React & Motion)',
+    organization: 'Delve Labs BD',
+    status: 'Shortlisted',
+    dateApplied: 'June 10, 2026'
+  },
+  {
+    id: 'app2',
+    studentId: 'stud2',
+    studentName: 'Faisal Ahmed',
+    studentEmail: 'faisal.architect@cuet.ac.bd',
+    studentUniversity: 'CUET',
+    studentDivision: 'Chattogram',
+    opportunityId: 'o2',
+    opportunityTitle: 'Distributed Systems Fellow',
+    organization: 'BanglaTech Institute',
+    status: 'Interviewing',
+    dateApplied: 'June 10, 2026'
+  },
+  {
+    id: 'app3',
+    studentId: 'stud3',
+    studentName: 'Tahmid Khan',
+    studentEmail: 'tahmid.code@sust.edu',
+    studentUniversity: 'SUST',
+    studentDivision: 'Sylhet',
+    opportunityId: 'o2',
+    opportunityTitle: 'Distributed Systems Fellow',
+    organization: 'BanglaTech Institute',
+    status: 'Under Review',
+    dateApplied: 'June 11, 2026'
+  }
+];
+
