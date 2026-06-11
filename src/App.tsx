@@ -43,6 +43,9 @@ import PortalGateway from './components/PortalGateway';
 import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
 
+// @ts-ignore
+import huntclubBgTeam from './assets/images/huntclub_bg_team_v2_1781179955964.jpg';
+
 export default function App() {
   // Navigation Routing State
   const [view, setView] = useState<'landing' | 'auth' | 'student-dashboard' | 'organizer-dashboard'>(() => {
@@ -299,59 +302,64 @@ export default function App() {
             <div className="absolute top-[800px] right-0 w-48 h-48 pointer-events-none opacity-[0.1] artistic-dashed" />
             <div className="absolute bottom-64 left-10 w-40 h-40 pointer-events-none opacity-[0.08] artistic-dashed" />
 
-            {/* Header Navigation */}
+            {/* Header Navigation - Reverted to Authentic Slate Off-White Header */}
             <header className="sticky top-0 z-40 bg-[#F7F8F0]/85 backdrop-blur-md border-b-2 border-[#355872]/15">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="relative group">
-                    <div className="w-10 h-10 rounded-xl bg-[#355872] flex items-center justify-center text-white shadow-md hover:rotate-12 transition-all duration-300">
-                      <Cpu className="w-5 h-5 text-[#9CD5FF]" />
+                  <div className="relative group cursor-pointer" onClick={() => scrollToSection('landing')}>
+                    <div className="w-10 h-10 rounded-none bg-[#355872] border border-[#355872]/20 flex items-center justify-center text-white shadow-md hover:rotate-12 transition-all duration-300">
+                      <Cpu className="w-5 h-5 text-[#9CD5FF] group-hover:scale-110 transition-transform" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 flex gap-0.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 border border-[#F7F8F0]" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 border border-[#F7F8F0]" />
+                      <div className="w-2.5 h-2.5 rounded-none bg-emerald-600 border border-[#F7F8F0]" />
+                      <div className="w-2.5 h-2.5 rounded-none bg-red-500 border border-[#F7F8F0]" />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="cursor-pointer select-none" onClick={() => scrollToSection('landing')}>
                     <span className="font-display font-extrabold text-xl text-[#355872] tracking-tighter">
                       TalentHub<span className="text-[#7AAACE] font-serif italic font-normal">.BD</span>
                     </span>
-                    <span className="block text-[8px] font-mono text-slate-400 font-semibold tracking-widest uppercase">SYNERGETIC GRAPH_NET</span>
+                    <span className="block text-[8px] font-mono text-slate-500 font-semibold tracking-widest uppercase">SYNERGETIC GRID_NET</span>
                   </div>
                 </div>
 
-                {/* Navigation pills */}
-                <nav className="hidden md:flex items-center gap-1">
+                {/* Navigation pills - Styled as sharp-cornered ghost modules */}
+                <nav className="hidden md:flex items-center gap-2">
                   <button 
                     onClick={() => scrollToSection('bangladesh-opportunity-network')}
-                    className="text-[11px] text-slate-500 hover:text-[#355872] font-mono px-3 py-2 rounded-lg hover:bg-[#355872]/5 transition-all duration-200"
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
-                    [ Hub Grid ]
+                    <span className="w-1.5 h-1.5 bg-[#7AAACE] group-hover:scale-125 transition-transform" />
+                    <span>Hub Grid</span>
                   </button>
                   <button 
                     onClick={() => scrollToSection('talent-spotlight')}
-                    className="text-[11px] text-slate-500 hover:text-[#355872] font-mono px-3 py-2 rounded-lg hover:bg-[#355872]/5 transition-all duration-200"
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
-                    [ Talent Directory ]
+                    <span className="w-1.5 h-1.5 bg-[#9CD5FF] animate-pulse" />
+                    <span>Talent Directory</span>
                   </button>
                   <button 
                     onClick={() => scrollToSection('opportunities-matrix')}
-                    className="text-[11px] text-slate-500 hover:text-[#355872] font-mono px-3 py-2 rounded-lg hover:bg-[#355872]/5 transition-all duration-200"
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
-                    [ Opportunity Board ]
+                    <span className="w-1.5 h-1.5 bg-orange-400" />
+                    <span>Opportunity Board</span>
                   </button>
                   <button 
                     onClick={() => scrollToSection('events-agenda')}
-                    className="text-[11px] text-slate-500 hover:text-[#355872] font-mono px-3 py-2 rounded-lg hover:bg-[#355872]/5 transition-all duration-200"
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
-                    [ National Events ]
+                    <span className="w-1.5 h-1.5 bg-rose-500 animate-pulse" />
+                    <span>National Events</span>
                   </button>
                   <button 
                     onClick={() => scrollToSection('communities')}
-                    className="text-[11px] text-slate-500 hover:text-[#355872] font-mono px-3 py-2 rounded-lg hover:bg-[#355872]/5 transition-all duration-200"
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
-                    [ Clusters ]
+                    <span className="w-1.5 h-1.5 bg-emerald-600" />
+                    <span>Clusters</span>
                   </button>
                 </nav>
 
@@ -360,15 +368,15 @@ export default function App() {
                   {user ? (
                     <button
                       onClick={() => setView(user.role === 'student' ? 'student-dashboard' : 'organizer-dashboard')}
-                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-xl text-xs font-mono font-bold text-white bg-slate-900 border border-slate-900 shadow-[2px_2px_0px_0px_rgba(30,41,59,0.3)] transition-all duration-200 hover:-translate-y-0.5"
+                      className="flex items-center gap-1.5 px-4.5 py-2.5 rounded-none text-xs font-mono font-bold text-[#F7F8F0] bg-[#355872] border-2 border-[#34536b] shadow-[3px_3px_0px_0px_rgba(53,88,114,0.3)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200"
                       id="launch-workspace-btn"
                     >
-                      <UserCheck className="w-3.5 h-3.5" /> [ Open My Workspace ]
+                      <UserCheck className="w-3.5 h-3.5 text-[#9CD5FF]" /> [ Open My Workspace ]
                     </button>
                   ) : (
                     <button
                       onClick={() => setView('auth')}
-                      className="flex items-center gap-1 px-4.5 py-2 rounded-xl text-xs font-mono font-bold text-[#F7F8F0] bg-[#355872] border-2 border-[#34536b] shadow-[3px_3px_0px_0px_rgba(53,88,114,0.3)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200"
+                      className="flex items-center gap-1.5 px-4.5 py-2.5 rounded-none text-xs font-mono font-bold text-[#F7F8F0] bg-[#355872] border-2 border-[#34536b] shadow-[3px_3px_0px_0px_rgba(53,88,114,0.3)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200"
                       id="launch-portal-btn"
                     >
                       [ Portal Gateway ]
@@ -378,49 +386,127 @@ export default function App() {
               </div>
             </header>
 
-            {/* Hero Section */}
-            <section className="relative overflow-hidden pt-16 pb-24 border-b-2 border-[#355872]/10 bg-radial-gradient from-white via-[#F7F8F0] to-[#F7F8F0]/40">
+            {/* Hero Section - HuntClub Dark-Mode Cinematic Style */}
+            <section className="relative overflow-hidden pt-20 lg:pt-28 pb-24 lg:pb-28 bg-[#090D11] border-b-2 border-slate-950">
+              {/* Full-bleed background team overlay with dark gradient sweeps */}
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
+                <img 
+                  src={huntclubBgTeam} 
+                  alt="Bangladesh Synergetic Graph Professional Team" 
+                  className="absolute right-0 top-0 h-full w-full lg:w-[65%] object-cover object-right opacity-30 md:opacity-50 lg:opacity-75 transition-all duration-1000"
+                  referrerPolicy="no-referrer"
+                />
+                {/* Complex gradient fades to mask the image perfectly into the dark background on the left and bottom */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#090D11] via-[#090D11]/90 md:via-[#090D11]/60 lg:via-[#090D11]/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#090D11] via-transparent to-transparent opacity-90" />
+                {/* Subtle top light vignette */}
+                <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-slate-950/20 to-transparent pointer-events-none" />
+              </div>
+
               <ConstellationMesh />
 
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8 pointer-events-none">
-                <div className="inline-flex items-center gap-2 bg-white/95 border-2 border-[#355872]/15 px-4 py-2 rounded-3xl backdrop-blur-md shadow-[3px_3px_0px_0px_rgba(53,88,114,0.1)] pointer-events-auto cursor-default">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-[10px] sm:text-xs font-mono font-semibold text-slate-500">
-                    Bangladesh's digital node density:
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-mono font-bold text-[#355872] bg-[#355872]/8 border border-[#355872]/15 px-2.5 py-0.5 rounded-full">
-                    427 cluster connections/sec
-                  </span>
-                </div>
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                  
+                  {/* Left Column: High-Contrast typography overlays over background */}
+                  <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-left">
+                    <div className="inline-flex items-center gap-2 bg-slate-900/95 border border-slate-800 px-4 py-2 rounded-3xl backdrop-blur-md shadow-lg pointer-events-auto cursor-default">
+                      <Flame className="w-4 h-4 text-[#9CD5FF] animate-pulse" />
+                      <span className="text-[10px] sm:text-xs font-mono font-semibold text-slate-300">
+                        Bangladesh's digital node density:
+                      </span>
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-[#9CD5FF] bg-[#355872]/20 border border-[#7AAACE]/30 px-2.5 py-0.5 rounded-full">
+                        427 cluster connections/sec
+                      </span>
+                    </div>
 
-                <div className="space-y-6 max-w-4xl mx-auto">
-                  <h1 className="font-display font-extrabold text-[#355872] leading-[1.1] tracking-tight text-3xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
-                    An Interconnected Grid for Bangladesh's <span className="font-serif italic font-normal text-slate-700 underline decoration-[#7AAACE] decoration-wavy underline-offset-8">Next-Gen</span> Talent
-                  </h1>
-                  <p className="text-slate-600 font-sans text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed font-light">
-                    A centralized, premium digital grid linking top software engineers, competitive programmers, product designers, and academic hackathons across Bangladesh's division hub networks.
+                    <div className="space-y-5">
+                      <h1 className="font-display font-extrabold text-white leading-[1.1] tracking-tight text-3xl sm:text-5xl lg:text-5xl">
+                        There's a builder in Bangladesh <span className="text-[#9CD5FF] font-serif italic font-normal bg-clip-text text-transparent bg-gradient-to-r from-[#9CD5FF] via-[#7AAACE] to-sky-400 block mt-2">you should connect with.</span>
+                      </h1>
+                      <p className="text-slate-300 font-sans text-sm sm:text-base leading-relaxed font-light max-w-xl">
+                        A centralized, premium digital grid linking top software engineers, competitive programmers, product designers, and academic hackathons across Bangladesh's division hub networks.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 pointer-events-auto">
+                      <button
+                        onClick={() => scrollToSection('talent-spotlight')}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#7AAACE] hover:bg-[#9CD5FF] border-2 border-[#7AAACE] text-slate-950 rounded-none text-xs font-mono font-bold px-6 py-4 transition-all shadow-[4px_4px_0px_0px_rgba(122,170,206,0.3)] hover:shadow-[6px_6px_0px_0px_rgba(122,170,206,0.5)] active:translate-x-0.5 active:translate-y-0.5 duration-300 group"
+                      >
+                        Explore Talent Directory <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-slate-950" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (user) {
+                            setView(user.role === 'student' ? 'student-dashboard' : 'organizer-dashboard');
+                          } else {
+                            setView('auth');
+                          }
+                        }}
+                        className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-transparent hover:bg-slate-800/40 border-2 border-[#355872] hover:border-[#7AAACE] text-[#9CD5FF] hover:text-white rounded-none text-xs font-mono font-bold px-6 py-4 active:scale-95 transition-all duration-300"
+                      >
+                        {user ? 'Open My Dashboard Console' : 'Launch Gateway Pass'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Left empty to let the background graphic layout blend beautifully */}
+                  <div className="hidden lg:block lg:col-span-5" />
+
+                </div>
+              </div>
+
+              {/* Infinite Horizontal Continuous Scroll Marquee Bar */}
+              <div className="mt-20 border-t border-slate-800/40 pt-8 relative z-10 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <p className="text-[9px] tracking-[0.2em] font-mono text-slate-500 font-bold mb-6 text-center lg:text-left">
+                    // BROADCASTING ACROSS UNIVERSITY GRID CHANNELS & DIVISION NODES //
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 pointer-events-auto">
-                  <button
-                    onClick={() => scrollToSection('talent-spotlight')}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#355872] hover:bg-[#355872]/95 border-2 border-[#355872] text-[#F7F8F0] rounded-xl text-xs font-mono font-bold px-6 py-4 transition-all shadow-[4px_4px_0px_0px_rgba(122,170,206,0.4)] hover:shadow-[6px_6px_0px_0px_rgba(122,170,206,0.8)] group duration-300"
-                  >
-                    Explore Talent Directory <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (user) {
-                        setView(user.role === 'student' ? 'student-dashboard' : 'organizer-dashboard');
-                      } else {
-                        setView('auth');
-                      }
-                    }}
-                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-white hover:bg-[#F7F8F0]/60 border-2 border-[#355872] text-[#355872] rounded-xl text-xs font-mono font-bold px-6 py-4 transition-all shadow-[4px_4px_0px_0px_rgba(53,88,114,0.15)] hover:shadow-[6px_6px_0px_0px_rgba(53,88,114,0.3)] duration-300"
-                  >
-                    {user ? 'Open My Dashboard Console' : 'Launch Gateway Pass'}
-                  </button>
+                <div className="w-full overflow-hidden relative select-none py-2 bg-[#355872]/5 border-y border-slate-800/40">
+                  {/* Fade-out left and right bounds */}
+                  <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#090D11] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#090D11] to-transparent z-10 pointer-events-none" />
+
+                  <div className="flex animate-marquee whitespace-nowrap gap-x-12">
+                    {/* First stream copy */}
+                    <div className="flex items-center gap-x-12 shrink-0">
+                      {[
+                        { main: "BUET_CORES", sub: "DHAKA DISTRICT" },
+                        { main: "DU_CLUSTERS", sub: "ROOT NODE_01" },
+                        { main: "SUST_GRID", sub: "SYLHET GRAPH_PORT" },
+                        { main: "IUT_SPECTRUM", sub: "ENGINEERING_GATE" },
+                        { main: "RUET_NODE", sub: "WEST RAJSHAHI" },
+                        { main: "MIST_COMPS", sub: "MILITARY SECTOR" },
+                        { main: "CHT_HUBS", sub: "PORT_NODE 04" }
+                      ].map((chan, idx) => (
+                        <div key={`c1-${idx}`} className="flex flex-col items-start min-w-[150px]">
+                          <span className="font-mono text-[11px] font-black text-[#9CD5FF] tracking-wider hover:text-white transition-colors">{chan.main}</span>
+                          <span className="text-[7px] font-mono text-slate-400 uppercase mt-0.5">{chan.sub}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Second stream copy for seamless tiling */}
+                    <div className="flex items-center gap-x-12 shrink-0" aria-hidden="true">
+                      {[
+                        { main: "BUET_CORES", sub: "DHAKA DISTRICT" },
+                        { main: "DU_CLUSTERS", sub: "ROOT NODE_01" },
+                        { main: "SUST_GRID", sub: "SYLHET GRAPH_PORT" },
+                        { main: "IUT_SPECTRUM", sub: "ENGINEERING_GATE" },
+                        { main: "RUET_NODE", sub: "WEST RAJSHAHI" },
+                        { main: "MIST_COMPS", sub: "MILITARY SECTOR" },
+                        { main: "CHT_HUBS", sub: "PORT_NODE 04" }
+                      ].map((chan, idx) => (
+                        <div key={`c2-${idx}`} className="flex flex-col items-start min-w-[150px]">
+                          <span className="font-mono text-[11px] font-black text-[#9CD5FF] tracking-wider hover:text-white transition-colors">{chan.main}</span>
+                          <span className="text-[7px] font-mono text-slate-400 uppercase mt-0.5">{chan.sub}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -456,8 +542,8 @@ export default function App() {
               />
             </main>
 
-            {/* Call to action section */}
-            <section className="bg-white border-t border-slate-100 py-16 text-center shadow-inner relative overflow-hidden">
+             {/* Call to action section */}
+            <section className="bg-[#355872]/5 border-t border-[#355872]/15 py-16 text-center shadow-inner relative overflow-hidden">
               <div className="absolute inset-0 bg-[#F7F8F0]/30 pointer-events-none" />
               <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
                 <span className="text-[10px] font-mono tracking-widest text-[#7AAACE] uppercase font-bold">
@@ -478,13 +564,13 @@ export default function App() {
                         setView('auth');
                       }
                     }}
-                    className="px-6 py-3 bg-[#355872] hover:bg-[#355872]/90 text-white rounded-xl text-xs font-mono font-bold transition-all shadow-sm"
+                    className="px-6 py-3 bg-[#355872] hover:bg-[#355872]/90 text-white rounded-none text-xs font-mono font-bold transition-all shadow-sm"
                   >
                     {user ? 'Enter My Active Dashboard' : 'Secure My Membership Pass'}
                   </button>
                   <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="px-6 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-xs font-mono transition-all"
+                    className="px-6 py-3 bg-white hover:bg-slate-50 text-[#355872] border border-[#355872]/20 rounded-none text-xs font-mono transition-all"
                   >
                     Return to Top 
                   </button>

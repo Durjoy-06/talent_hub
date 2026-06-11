@@ -62,35 +62,71 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         {/* Graph representation container */}
-        <div className="lg:col-span-7 bg-[#F7F8F0]/30 rounded-2xl border-2 border-[#355872]/10 p-6 relative min-h-[400px] md:min-h-[450px] overflow-hidden flex flex-col justify-between">
-          <div className="absolute inset-0 bg-radial-gradient from-transparent to-[#F7F8F0]/30 pointer-events-none" />
+        <div className="lg:col-span-7 bg-gradient-to-br from-[#091522] via-[#050B14] to-[#02050B] rounded-2xl border-2 border-[#355872]/20 p-6 relative min-h-[400px] md:min-h-[450px] overflow-hidden flex flex-col justify-between shadow-[inset_0_1px_2px_rgba(255,255,255,0.05),_0_8px_16px_rgba(0,0,0,0.5)]">
+          {/* Futuristic grid overlay background & soft blue ambient flare */}
+          <div className="absolute inset-0 bg-radial-gradient from-[#7AAACE]/10 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-[#9CD5FF]/5 rounded-full blur-[100px] pointer-events-none" />
           
-          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 text-[10px] font-mono text-slate-400">
-            <span>[ COORDINATES: BD_TRANSVERSE_GRAPH_V2 ]</span>
+          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 text-[10px] font-mono text-[#7AAACE]/70">
+            <span>[ SYSTEM_MAPPED: REAL_GEOGRAPHIC_GRID_BD ]</span>
             <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:inline">PROXIMITY RADIAL CONNECTIONS</span>
+            <span className="hidden sm:inline">HIGH_FIDELITY_TOPOLOGICAL_OVERLAY</span>
           </div>
 
-          {/* SVG Map Lines representation */}
+          {/* SVG Map Lines & Geographic Outline representation */}
           <div className="absolute inset-0 pointer-events-none">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
               <defs>
-                <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#355872" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#7AAACE" stopOpacity="0.1" />
+                <linearGradient id="map-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#1E344A" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#0D1F31" stopOpacity="0.75" />
                 </linearGradient>
-                <filter id="glow-effect" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#9CD5FF" floodOpacity="0.5" />
+                <filter id="glow-effect" x="-10%" y="-10%" width="120%" height="120%">
+                  <feGaussianBlur stdDeviation="1.0" result="blur" />
+                  <feComponentTransfer in="blur" result="glow">
+                    <feFuncA type="linear" slope="0.8"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode in="glow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
                 </filter>
+                <pattern id="tech-dots" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(122, 170, 206, 0.08)" strokeWidth="0.15" />
+                  <circle cx="10" cy="10" r="0.45" fill="rgba(156, 213, 255, 0.15)" />
+                </pattern>
               </defs>
 
-              {/* Draw connected lines */}
+              {/* Blueprint Grid and Point Accents */}
+              <rect width="100" height="100" fill="url(#tech-dots)" />
+
+              {/* Geographic Bangladesh Outline (Real Bangladesh Map Silhouette) */}
+              <g className="transition-opacity duration-500">
+                {/* Glow Backdrop */}
+                <path
+                  d="M 20 8 C 22 7.5, 23 7, 24 7 C 25.5 8, 26.5 9, 27 10 C 27 13.5, 27 16, 27 18 C 30 20.5, 32.5 22, 35 23 C 38.5 23.5, 42 24, 45 24 C 48 22.5, 50.5 21, 53 20 C 55.5 21, 58 21.5, 60 22 C 63 20.5, 65.5 19, 68 18 C 71 18, 73 18, 75 18 C 78 20, 80.5 21.5, 82 23 C 81.5 26, 81 28.5, 81 31 C 82.5 33.5, 83.5 36, 84 38 C 81 40.5, 78.5 42, 76 44 C 74.5 45.5, 73 47, 72 48 C 72.5 51, 72.8 53.5, 73 56 C 74 58.5, 75 60.5, 76 62 C 78.5 63, 80.5 64, 82 65 C 84 68, 85 70.5, 86 73 C 84.5 75.5, 83.5 78, 83 80 C 85 83, 86 86, 87 88 C 86.5 90.5, 86 92.5, 86 94 C 84.5 92.5, 83 91, 82 90 C 81 87.5, 80.5 85.5, 80 84 C 78 81.5, 76 79.5, 75 78 C 73 76.8, 71.5 75.8, 70 75 C 68 76, 66.5 76.5, 65 77 C 63 79, 61.5 80.5, 60 82 C 57.5 83, 55.5 83.5, 54 84 C 51.5 85.5, 49.5 87, 48 88 C 46 87, 44.5 86, 43 85 C 40.5 85.5, 38.5 85.8, 37 86 C 34 86.5, 32 86.8, 30 87 C 28 86.5, 27 86.2, 26 86 C 24.5 83.5, 23.5 81.5, 23 80 C 24 77, 24.5 74.5, 25 72 C 23.5 69.5, 22 67, 21 65 C 19.5 62.5, 18.5 60.5, 18 59 C 16 56.5, 15 54.5, 14 53 C 12.5 50.5, 11.5 48, 11 46 C 9.5 43.5, 8.5 42, 8 41 C 9 39, 9.5 37.5, 10 36 C 12 35, 13.5 34, 15 33 C 14 30.5, 13.5 28, 13 26 C 12.5 23.5, 12 21, 12 19 C 13.5 16.5, 14.5 14, 15 12 C 17 10.5, 18.5 9, 20 8 Z"
+                  fill="url(#map-grad)"
+                  stroke="#7AAACE"
+                  strokeWidth="1.2"
+                  filter="url(#glow-effect)"
+                  strokeOpacity="0.45"
+                />
+                {/* Crisp Foreground Outline */}
+                <path
+                  d="M 20 8 C 22 7.5, 23 7, 24 7 C 25.5 8, 26.5 9, 27 10 C 27 13.5, 27 16, 27 18 C 30 20.5, 32.5 22, 35 23 C 38.5 23.5, 42 24, 45 24 C 48 22.5, 50.5 21, 53 20 C 55.5 21, 58 21.5, 60 22 C 63 20.5, 65.5 19, 68 18 C 71 18, 73 18, 75 18 C 78 20, 80.5 21.5, 82 23 C 81.5 26, 81 28.5, 81 31 C 82.5 33.5, 83.5 36, 84 38 C 81 40.5, 78.5 42, 76 44 C 74.5 45.5, 73 47, 72 48 C 72.5 51, 72.8 53.5, 73 56 C 74 58.5, 75 60.5, 76 62 C 78.5 63, 80.5 64, 82 65 C 84 68, 85 70.5, 86 73 C 84.5 75.5, 83.5 78, 83 80 C 85 83, 86 86, 87 88 C 86.5 90.5, 86 92.5, 86 94 C 84.5 92.5, 83 91, 82 90 C 81 87.5, 80.5 85.5, 80 84 C 78 81.5, 76 79.5, 75 78 C 73 76.8, 71.5 75.8, 70 75 C 68 76, 66.5 76.5, 65 77 C 63 79, 61.5 80.5, 60 82 C 57.5 83, 55.5 83.5, 54 84 C 51.5 85.5, 49.5 87, 48 88 C 46 87, 44.5 86, 43 85 C 40.5 85.5, 38.5 85.8, 37 86 C 34 86.5, 32 86.8, 30 87 C 28 86.5, 27 86.2, 26 86 C 24.5 83.5, 23.5 81.5, 23 80 C 24 77, 24.5 74.5, 25 72 C 23.5 69.5, 22 67, 21 65 C 19.5 62.5, 18.5 60.5, 18 59 C 16 56.5, 15 54.5, 14 53 C 12.5 50.5, 11.5 48, 11 46 C 9.5 43.5, 8.5 42, 8 41 C 9 39, 9.5 37.5, 10 36 C 12 35, 13.5 34, 15 33 C 14 30.5, 13.5 28, 13 26 C 12.5 23.5, 12 21, 12 19 C 13.5 16.5, 14.5 14, 15 12 C 17 10.5, 18.5 9, 20 8 Z"
+                  fill="none"
+                  stroke="#9CD5FF"
+                  strokeWidth="0.45"
+                  strokeOpacity="0.8"
+                />
+              </g>
+
+              {/* Draw connected topological lines */}
               {INITIAL_HUBS.map((hub) => {
                 return hub.connections.map((connId) => {
                   const targetHub = INITIAL_HUBS.find(h => h.id === connId);
                   if (!targetHub) return null;
                   
-                  // Active highlight if either node is active/hovered
                   const isActiveConnection = 
                     activeHub.id === hub.id || 
                     activeHub.id === targetHub.id ||
@@ -99,13 +135,13 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
                   return (
                     <line
                       key={`${hub.id}-${targetHub.id}`}
-                      x1={`${hub.x}%`}
-                      y1={`${hub.y}%`}
-                      x2={`${targetHub.x}%`}
-                      y2={`${targetHub.y}%`}
-                      stroke={isActiveConnection ? '#7AAACE' : 'rgba(53, 88, 114, 0.12)'}
-                      strokeWidth={isActiveConnection ? '1.8' : '0.8'}
-                      strokeDasharray={isActiveConnection ? '4 2' : 'none'}
+                      x1={hub.x}
+                      y1={hub.y}
+                      x2={targetHub.x}
+                      y2={targetHub.y}
+                      stroke={isActiveConnection ? '#9CD5FF' : 'rgba(122, 170, 206, 0.16)'}
+                      strokeWidth={isActiveConnection ? '1.2' : '0.45'}
+                      strokeDasharray={isActiveConnection ? '3 1.5' : 'none'}
                       className="transition-all duration-300"
                     />
                   );
@@ -114,7 +150,7 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
             </svg>
           </div>
 
-          {/* Floating Nodes */}
+          {/* Floating Interactive Nodes */}
           <div className="absolute inset-0" id="topological-nodes-container">
             {INITIAL_HUBS.map((hub) => {
               const isSelected = selectedHub === hub.name.replace(' Hub', '');
@@ -134,49 +170,49 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
                     onMouseLeave={() => setHoveredHub(null)}
                     className="relative cursor-pointer p-4"
                   >
-                    {/* Ring glow */}
+                    {/* Glowing active rings */}
                     {(isActive || isHovered || isSelected) && (
                       <motion.div
                         layoutId="nodeGlow"
-                        className="absolute inset-0 rounded-full bg-[#9CD5FF]/20"
-                        style={{ filter: 'blur(3px)' }}
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1.4, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        className="absolute inset-0 rounded-full bg-[#9CD5FF]/25"
+                        style={{ filter: 'blur(4px)' }}
+                        initial={{ scale: 0.7, opacity: 0 }}
+                        animate={{ scale: 1.35, opacity: 1 }}
+                        transition={{ type: 'spring', stiffness: 220, damping: 18 }}
                       />
                     )}
 
                     {/* Node Core */}
                     <motion.div
-                      whileHover={{ scale: 1.15 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300 shadow-md ${
+                      whileHover={{ scale: 1.2 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                      className={`w-5 h-5 rounded-none flex items-center justify-center border-2 transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)] ${
                         isSelected
-                          ? 'bg-[#355872] border-[#9CD5FF] scale-110'
+                          ? 'bg-[#355872] border-[#9CD5FF] scale-110 shadow-[0_0_12px_rgba(156,213,255,0.6)]'
                           : isActive
                             ? 'bg-[#355872] border-[#7AAACE]'
-                            : 'bg-white border-slate-300 hover:border-[#355872]'
+                            : 'bg-[#080E14] border-[#355872]/60 hover:border-[#9CD5FF]'
                       }`}
                     >
-                      <div className={`w-2.5 h-2.5 rounded-full ${
+                      <div className={`w-2 h-2 rounded-none ${
                         isSelected 
-                          ? 'bg-[#9CD5FF] pulsing-dot' 
+                          ? 'bg-amber-400 pulsing-dot' 
                           : isActive 
-                            ? 'bg-[#7AAACE]' 
-                            : 'bg-slate-400 group-hover:bg-[#355872]'
+                            ? 'bg-emerald-400 animate-pulse' 
+                            : 'bg-[#7AAACE] group-hover:bg-[#9CD5FF]'
                       }`} />
                     </motion.div>
 
-                    {/* Node Tooltip Label */}
-                    <div className="absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap overflow-visible z-30">
-                      <div className={`px-2 py-1 rounded-md text-[10px] font-medium font-mono border transition-all duration-300 ${
+                    {/* Node Tooltip Label (Sharp ghost terminal style) */}
+                    <div className="absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap overflow-visible z-30 pointer-events-none">
+                      <div className={`px-2.5 py-1 rounded-none text-[9px] font-bold font-mono border transition-all duration-300 ${
                         isSelected
-                          ? 'bg-[#355872] text-white border-[#355872]'
+                          ? 'bg-[#9CD5FF] text-slate-950 border-[#9CD5FF] shadow-[0_0_8px_rgba(156,213,255,0.4)]'
                           : isActive
-                            ? 'bg-[#1E293B] text-white border-slate-700 shadow-lg'
-                            : 'bg-white text-slate-600 border-slate-100 shadow-sm opacity-80 group-hover:opacity-100 group-hover:border-slate-300'
+                            ? 'bg-white text-slate-950 border-white shadow-md'
+                            : 'bg-[#050b14]/90 text-[#7AAACE] border-[#355872]/45 opacity-80 group-hover:opacity-100 group-hover:border-[#9CD5FF] group-hover:text-white'
                       }`}>
-                        {hub.name}
+                        {hub.name.toUpperCase()}
                       </div>
                     </div>
                   </div>
@@ -185,9 +221,9 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
             })}
           </div>
 
-          <div className="mt-auto pt-4 relative z-10 flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>[ Click nodes to filter directory ]</span>
-            <span>GRIDSCALE: 1:1.20M BD</span>
+          <div className="mt-auto pt-4 relative z-10 flex items-center justify-between text-xs font-mono text-[#7AAACE]/75">
+            <span>[ TARGET NODE SELECTION CONTROLS ]</span>
+            <span>SCALE: 1:1.15M REAL_LATITUDE</span>
           </div>
         </div>
 
