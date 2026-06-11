@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Cormorant Garamond", "Playfair Display", serif;
+  
+  --color-brand-primary: #355872;
+  --color-brand-secondary: #7AAACE;
+  --color-brand-accent: #9CD5FF;
+  --color-brand-bg: #F7F8F0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-bg);
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(156, 213, 255, 0.12) 0%, transparent 75%),
+    linear-gradient(rgba(53, 88, 114, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 88, 114, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px;
+  color: #1E293B;
+  overflow-x: hidden;
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Pulsing effect */
+@keyframes softPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.pulsing-dot {
+  animation: softPulse 3s infinite ease-in-out;
+}
+
+/* Artistic Flair theme extensions */
+.artistic-shadow {
+  box-shadow: 4px 4px 0px 0px rgba(53, 88, 114, 0.12);
+}
+
+.artistic-shadow-strong {
+  box-shadow: 6px 6px 0px 0px #355872;
+}
+
+.artistic-shadow-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.artistic-shadow-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px 0px #355872;
+}
+
+.artistic-border {
+  border: 1px solid rgba(53, 88, 114, 0.15);
+}
+
+.artistic-dashed {
+  background-image: radial-gradient(circle, rgba(53, 88, 114, 0.2) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
