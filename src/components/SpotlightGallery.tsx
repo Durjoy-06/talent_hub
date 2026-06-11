@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Talent } from '../types';
-import { Eye, Heart, PlusCircle, Github, Linkedin, Send, Sparkles, User, Briefcase, GraduationCap, MapPin } from 'lucide-react';
+import { Talent, LoggedInUser } from '../types';
+import { Eye, Heart, PlusCircle, Github, Linkedin, Send, Sparkles, User, Briefcase, GraduationCap, MapPin, Mail, UserCheck } from 'lucide-react';
 
 interface SpotlightGalleryProps {
   talents: Talent[];
   selectedHub: string | null;
   onAddTalent: (talent: Talent) => void;
+  currentUser: LoggedInUser | null;
+  onLoginSuccess?: (user: LoggedInUser) => void;
 }
 
-export default function SpotlightGallery({ talents, selectedHub, onAddTalent }: SpotlightGalleryProps) {
+export default function SpotlightGallery({ 
+  talents, 
+  selectedHub, 
+  onAddTalent,
+  currentUser,
+  onLoginSuccess
+}: SpotlightGalleryProps) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   
+  // Student Sign-in state
+  const [signInName, setSignInName] = useState('');
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInUniversity, setSignInUniversity] = useState('BUET');
+  const [signInDivision, setSignInDivision] = useState('Dhaka');
+
   // Local state for adding a talent profile
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('Full Stack Developer');
@@ -22,6 +36,15 @@ export default function SpotlightGallery({ talents, selectedHub, onAddTalent }: 
   const [newBio, setNewBio] = useState('');
   const [newLookingFor, setNewLookingFor] = useState('');
   const [likesState, setLikesState] = useState<Record<string, number>>({});
+
+  // Sync profile form state with currentUser on load/login so it prepopulates
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'student') {
+      setNewName(currentUser.name);
+      if (currentUser.university) setNewUniversity(currentUser.university);
+      if (currentUser.division) setNewDivision(currentUser.division);
+    }
+  }, [currentUser]);
 
   const categories = ['All', 'AI & NLP', 'Full Stack', 'Design', 'Systems & CP'];
 
@@ -95,6 +118,37 @@ export default function SpotlightGallery({ talents, selectedHub, onAddTalent }: 
     setShowAddForm(false);
   };
 
+  const handleLocalSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signInName || !signInEmail) {
+      alert('Please fill out Name and Email fields.');
+      return;
+    }
+
+    const localStudent: LoggedInUser = {
+      id: 'stud_active_' + Date.now().toString().slice(-4),
+      name: signInName,
+      email: signInEmail,
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200',
+      division: signInDivision,
+      university: signInUniversity,
+      skills: ['React', 'TypeScript'],
+      bio: 'Eager student builder sharing profile on TalentHub BD.',
+    };
+
+    if (onLoginSuccess) {
+      onLoginSuccess(localStudent);
+    } else {
+      localStorage.setItem('talenthub_bd_user', JSON.stringify(localStudent));
+    }
+
+    alert(`SUCCESS: Student session established for "${signInName}". You can now proceed to input and register your professional talent profile!`);
+  };
+
+  const isStudentLoggedIn = currentUser && currentUser.role === 'student';
+  const isOrganizerLoggedIn = currentUser && currentUser.role === 'organizer';
+
   return (
     <div id="talent-spotlight" className="my-16">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
@@ -128,126 +182,251 @@ export default function SpotlightGallery({ talents, selectedHub, onAddTalent }: 
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="bg-white border border-[#7AAACE]/30 rounded-3xl p-6 md:p-8 mb-10 shadow-md max-w-2xl mx-auto"
+          className="bg-white border-2 border-[#355872]/20 rounded-3xl p-6 md:p-8 mb-10 shadow-md max-w-2xl mx-auto relative overflow-hidden"
         >
+          {/* Section decoration ticks */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#355872]/10" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#355872]/10" />
+
+          {/* Close button always visible */}
           <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-3">
-            <h3 className="font-display text-lg font-semibold text-[#355872] flex items-center gap-2">
-              <User className="w-5 h-5" /> Register Professional Talent Profile
+            <h3 className="font-display text-lg font-bold text-[#355872] flex items-center gap-2">
+              {isStudentLoggedIn ? (
+                <>
+                  <User className="w-5 h-5 text-[#7AAACE]" /> Register Professional Talent Profile
+                </>
+              ) : isOrganizerLoggedIn ? (
+                <>
+                  <UserCheck className="w-5 h-5 text-red-500" /> Organizer Role Warning
+                </>
+              ) : (
+                <>
+                  <UserCheck className="w-5 h-5 text-[#355872]" /> Student Verification Gateway
+                </>
+              )}
             </h3>
             <button 
               onClick={() => setShowAddForm(false)}
-              className="text-slate-400 hover:text-slate-600 text-sm font-mono"
+              className="text-slate-400 hover:text-slate-600 text-xs font-mono border px-2 py-0.5 rounded-lg bg-slate-50 transition-colors"
             >
               [ Close ]
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">FULL NAME *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., Sadia Rahman"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-                />
-              </div>
+          <AnimatePresence mode="wait">
+            {isOrganizerLoggedIn ? (
+              <motion.div
+                key="organizer-warning"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-6 space-y-4 font-mono text-xs"
+              >
+                <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl max-w-md mx-auto">
+                  💡 <strong>Organizer Account Detected</strong>: Your current active session is configured with administrative privileges. Sharing talent profiles is reserved exclusively for students.
+                </div>
+                <p className="text-slate-400">Please disconnect your organizer node first to proceed as a student builder.</p>
+              </motion.div>
+            ) : !isStudentLoggedIn ? (
+              <motion.div
+                key="student-signin"
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 15 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4 text-left"
+              >
+                <div className="bg-[#355872]/5 border-l-4 border-[#355872] p-3 rounded-r-xl">
+                  <p className="text-xs text-[#355872] leading-relaxed">
+                    💡 <strong>System Ingress Requirements</strong>: To prevent spam registries, students are requested to quickly verify their student identity. Existing accounts can sign-in immediately.
+                  </p>
+                </div>
 
-              <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">ROLE / INDENTIFICATION *</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-                >
-                  <option value="AI Research Engineer">AI Research Engineer</option>
-                  <option value="Full Stack Architect">Full Stack Architect</option>
-                  <option value="Full Stack Developer">Full Stack Developer</option>
-                  <option value="Product Designer">Product Designer</option>
-                  <option value="Competitive Programmer">Competitive Programmer</option>
-                  <option value="IoT Specialist">IoT Specialist</option>
-                  <option value="Data Scientist">Data Scientist</option>
-                </select>
-              </div>
-            </div>
+                <form onSubmit={handleLocalSignIn} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-500 mb-1">FULL NAME *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., Sadia Rahman"
+                        value={signInName}
+                        onChange={(e) => setSignInName(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      />
+                    </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">UNIVERSITY / INSTITUTE *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., SUST, DU, IUT"
-                  value={newUniversity}
-                  onChange={(e) => setNewUniversity(e.target.value)}
-                  className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-                />
-              </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-500 mb-1">EMAIL ADDRESS *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g., sadia@student.buet.ac.bd"
+                        value={signInEmail}
+                        onChange={(e) => setSignInEmail(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-mono text-slate-500 mb-1">LOCATION DIVISION *</label>
-                <select
-                  value={newDivision}
-                  onChange={(e) => setNewDivision(e.target.value)}
-                  className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-                >
-                  <option value="Dhaka">Dhaka</option>
-                  <option value="Chattogram">Chattogram</option>
-                  <option value="Sylhet">Sylhet</option>
-                  <option value="Rajshahi">Rajshahi</option>
-                  <option value="Khulna">Khulna</option>
-                  <option value="Barishal">Barishal</option>
-                  <option value="Rangpur">Rangpur</option>
-                  <option value="Mymensingh">Mymensingh</option>
-                </select>
-              </div>
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-500 mb-1">UNIVERSITY *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., BUET, DU, SUST"
+                        value={signInUniversity}
+                        onChange={(e) => setSignInUniversity(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      />
+                    </div>
 
-            <div>
-              <label className="block text-xs font-mono text-slate-500 mb-1">SKILLS (Separated with commas) *</label>
-              <input
-                type="text"
-                placeholder="Python, NLP, Framer, Go"
-                value={newSkills}
-                onChange={(e) => setNewSkills(e.target.value)}
-                className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-              />
-            </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-slate-500 mb-1">LOCATION DIVISION *</label>
+                      <select
+                        value={signInDivision}
+                        onChange={(e) => setSignInDivision(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      >
+                        {['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh'].map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-            <div>
-              <label className="block text-xs font-mono text-slate-500 mb-1">DETAILED BIO / PASSION STATEMENT *</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="Share your focus area, what you are building, or your achievements..."
-                value={newBio}
-                onChange={(e) => setNewBio(e.target.value)}
-                className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all resize-none"
-              />
-            </div>
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 bg-[#355872] hover:bg-[#355872]/95 text-white rounded-xl py-3 text-xs font-mono font-bold shadow-md transition-all duration-300"
+                  >
+                    <UserCheck className="w-4 h-4 text-[#9CD5FF]" /> [ Verify identity & Load Registration Form ]
+                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="register-talent-form"
+                initial={{ opacity: 0, x: 15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -15 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4 text-left"
+              >
+                <div className="bg-[#355872]/5 p-3 rounded-2xl border border-dashed border-[#355872]/20 text-[11px] font-mono flex items-center justify-between">
+                  <span className="text-[#355872] font-semibold">Active Session: {currentUser?.name} ({currentUser?.university})</span>
+                  <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded text-[9px] font-bold">VERIFIED_CELL</span>
+                </div>
 
-            <div>
-              <label className="block text-xs font-mono text-slate-500 mb-1">WHAT TYPE OF OPPORTUNITIES ARE YOU SEEKING?</label>
-              <input
-                type="text"
-                placeholder="e.g., Looking to join early-stage climate tech labs."
-                value={newLookingFor}
-                onChange={(e) => setNewLookingFor(e.target.value)}
-                className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
-              />
-            </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-500 mb-1">FULL NAME *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., Sadia Rahman"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      />
+                    </div>
 
-            <button
-              id="submit-profile-btn"
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-[#355872] text-white hover:bg-[#355872]/90 rounded-xl py-3 font-medium transition duration-300"
-            >
-              <Send className="w-4 h-4" /> Broadcast Profile to National Graph
-            </button>
-          </form>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-500 mb-1">ROLE / IDENTIFICATION *</label>
+                      <select
+                        value={newRole}
+                        onChange={(e) => setNewRole(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all animate-none"
+                      >
+                        <option value="AI Research Engineer">AI Research Engineer</option>
+                        <option value="Full Stack Architect">Full Stack Architect</option>
+                        <option value="Full Stack Developer">Full Stack Developer</option>
+                        <option value="Product Designer">Product Designer</option>
+                        <option value="Competitive Programmer">Competitive Programmer</option>
+                        <option value="IoT Specialist">IoT Specialist</option>
+                        <option value="Data Scientist">Data Scientist</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-500 mb-1">UNIVERSITY / INSTITUTE *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., SUST, DU, IUT"
+                        value={newUniversity}
+                        onChange={(e) => setNewUniversity(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-500 mb-1">LOCATION DIVISION *</label>
+                      <select
+                        value={newDivision}
+                        onChange={(e) => setNewDivision(e.target.value)}
+                        className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all animate-none"
+                      >
+                        <option value="Dhaka">Dhaka</option>
+                        <option value="Chattogram">Chattogram</option>
+                        <option value="Sylhet">Sylhet</option>
+                        <option value="Rajshahi">Rajshahi</option>
+                        <option value="Khulna">Khulna</option>
+                        <option value="Barishal">Barishal</option>
+                        <option value="Rangpur">Rangpur</option>
+                        <option value="Mymensingh">Mymensingh</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-500 mb-1">SKILLS (Separated with commas) *</label>
+                    <input
+                      type="text"
+                      placeholder="Python, NLP, Framer, Go"
+                      value={newSkills}
+                      onChange={(e) => setNewSkills(e.target.value)}
+                      className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-500 mb-1">DETAILED BIO / PASSION STATEMENT *</label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Share your focus area, what you are building, or your achievements..."
+                      value={newBio}
+                      onChange={(e) => setNewBio(e.target.value)}
+                      className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-500 mb-1">WHAT TYPE OF OPPORTUNITIES ARE YOU SEEKING?</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Looking to join early-stage climate tech labs."
+                      value={newLookingFor}
+                      onChange={(e) => setNewLookingFor(e.target.value)}
+                      className="w-full bg-[#F7F8F0]/50 border border-slate-200 focus:border-[#355872] outline-none rounded-xl px-4 py-2 text-sm focus:bg-white transition-all"
+                    />
+                  </div>
+
+                  <button
+                    id="submit-profile-btn"
+                    type="submit"
+                    className="w-full flex items-center justify-center gap-2 bg-[#355872] text-white hover:bg-[#355872]/90 rounded-xl py-3 font-medium transition duration-300 font-mono text-xs shadow-sm"
+                  >
+                    <Send className="w-4 h-4" /> [ Broadcast Profile to National Graph ]
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
 
