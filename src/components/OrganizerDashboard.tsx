@@ -23,9 +23,18 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  Github,
+  Linkedin,
+  ExternalLink,
+  Trophy,
+  Eye,
+  Award,
+  Play,
+  Tv,
+  X
 } from 'lucide-react';
-import { LoggedInUser, Opportunity, EventHub, Application } from '../types';
+import { LoggedInUser, Opportunity, EventHub, Application, Talent } from '../types';
 
 interface OrganizerDashboardProps {
   user: LoggedInUser;
@@ -33,11 +42,15 @@ interface OrganizerDashboardProps {
   opportunities: Opportunity[];
   events: EventHub[];
   applications: Application[];
+  talents: Talent[];
   onChangeApplicationStatus: (appId: string, newStatus: Application['status']) => void;
   onAddOpportunity: (newOpp: Opportunity) => void;
   onAddEvent: (newEvent: EventHub) => void;
   onDeleteOpportunity: (oppId: string) => void;
   onDeleteEvent: (eventId: string) => void;
+  requestedTab?: 'command' | 'applicants' | 'postings' | 'publish';
+  onOpenNotifications?: () => void;
+  unreadCount?: number;
 }
 
 export default function OrganizerDashboard({
@@ -46,16 +59,29 @@ export default function OrganizerDashboard({
   opportunities,
   events,
   applications,
+  talents,
   onChangeApplicationStatus,
   onAddOpportunity,
   onAddEvent,
   onDeleteOpportunity,
-  onDeleteEvent
+  onDeleteEvent,
+  requestedTab,
+  onOpenNotifications,
+  unreadCount = 0
 }: OrganizerDashboardProps) {
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'command' | 'applicants' | 'postings' | 'publish'>('command');
+
+  useEffect(() => {
+    if (requestedTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [requestedTab]);
   const [currentUtc, setCurrentUtc] = useState<string>('06:58:27');
+  
+  // Dialog state for applicant spotlight evaluation
+  const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
   
   // Analytics counter trigger
   const [totalRegistrations, setTotalRegistrations] = useState<number>(0);
@@ -110,6 +136,39 @@ export default function OrganizerDashboard({
       clearInterval(nodeInterval);
     };
   }, []);
+
+  const handleViewApplicantProfile = (app: Application) => {
+    // Attempt matching by studentId first, then by name
+    const matched = talents.find(t => t.id === app.studentId || t.name.toLowerCase() === app.studentName.toLowerCase());
+    if (matched) {
+      setSelectedTalent(matched);
+    } else {
+      // Fallback profile container
+      setSelectedTalent({
+        id: app.studentId || 'generated_' + Math.random(),
+        name: app.studentName,
+        role: 'Technical Applicant',
+        university: app.studentUniversity || 'Bangladesh University',
+        division: app.studentDivision || 'Dhaka',
+        skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+        bio: 'Dedicated student builder. Champion of sustainable technology ecosystems across regional hubs.',
+        avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+        connections: 180,
+        views: 390,
+        lookingFor: 'Seeking engineering opportunities with dynamic growth trajectories.',
+        featured: false,
+        showcases: [
+          {
+            id: 'sc-generated-1',
+            category: 'Dev',
+            title: app.opportunityTitle + ' Walkthrough',
+            description: 'Core submission for the role at ' + app.organization + '. Fully functional dashboard with responsive routing framework and persistence adapters.',
+            language: 'TypeScript'
+          }
+        ]
+      });
+    }
+  };
 
   // Sync clock time
   useEffect(() => {
@@ -347,9 +406,24 @@ export default function OrganizerDashboard({
               <span className="block font-mono text-xs text-slate-600 font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200 mt-0.5">{currentUtc}</span>
             </div>
             
-            <button className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all">
-              <Bell className="w-4 h-4" />
-            </button>
+            <div className="relative">
+              {unreadCount > 0 && (
+                <motion.span 
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-orange-600 text-[8px] font-mono font-black text-white shadow-sm border-2 border-[#F7F8F0] z-10" 
+                >
+                  {unreadCount}
+                </motion.span>
+              )}
+              <button 
+                onClick={onOpenNotifications}
+                className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all cursor-pointer relative"
+                aria-label="Toggle notifications menu"
+              >
+                <Bell className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -576,9 +650,18 @@ export default function OrganizerDashboard({
                               Applied To: <strong className="text-slate-700 font-medium font-sans">{app.opportunityTitle}</strong> Line at <span className="font-bold">{app.organization}</span>
                             </p>
                             
-                            <div className="flex gap-4 text-[10px] font-mono text-slate-400 mt-3 pt-3 border-t border-slate-50">
-                              <span>Profile Email: {app.studentEmail}</span>
-                              <span>Form Ref: {app.id}</span>
+                            <div className="flex flex-wrap items-center gap-3 mt-3.5 pt-3 border-t border-slate-100">
+                              <span className="text-[10px] font-mono text-slate-400">Profile Email: {app.studentEmail}</span>
+                              <span className="text-[10px] font-mono text-slate-400">•</span>
+                              <span className="text-[10px] font-mono text-slate-400">Form Ref: {app.id}</span>
+                              <button
+                                onClick={() => handleViewApplicantProfile(app)}
+                                className="md:ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#355872] text-white hover:bg-[#2c495f] rounded-lg text-[10.5px] font-mono font-bold transition-all hover:shadow-[3px_3px_0px_0px_rgba(53,88,114,0.15)] cursor-pointer"
+                                id={`view-profile-btn-${app.id}`}
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                                View Profile & Showcases
+                              </button>
                             </div>
                           </div>
 
@@ -970,8 +1053,335 @@ export default function OrganizerDashboard({
               </motion.div>
             )}
           </AnimatePresence>
-
         </main>
+
+        {/* Applicant Spotlight Showcase Profile Modal */}
+        <AnimatePresence>
+          {selectedTalent && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              {/* Backdrop Blur overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedTalent(null)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              />
+
+              {/* Modal Box */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(53,88,114,0.18)] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 flex flex-col scrollbar-thin text-slate-800"
+              >
+                {/* Header Visual Stripe-inspired */}
+                <div className="p-6 border-b border-slate-100 flex items-start justify-between gap-4 sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                  <div className="flex gap-4">
+                    <div className="relative">
+                      <img
+                        src={selectedTalent.avatarUrl}
+                        alt={selectedTalent.name}
+                        className="w-16 h-16 rounded-2xl object-cover border border-[#355872]/10"
+                        referrerPolicy="no-referrer"
+                      />
+                      {selectedTalent.featured && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white rounded-full p-0.5 text-[8px] border-2 border-white font-bold uppercase animate-pulse">
+                          ★
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-left space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-sans font-black text-lg text-slate-800 leading-tight">
+                          {selectedTalent.name}
+                        </h4>
+                        <span className="text-[9px] font-mono tracking-wider text-orange-700 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
+                          {selectedTalent.division} Node
+                        </span>
+                      </div>
+                      <p className="text-xs font-mono text-[#355872] font-semibold">
+                        {selectedTalent.role}
+                      </p>
+                      <p className="text-[11px] text-slate-400 font-light flex items-center gap-1">
+                        <Building className="w-3 h-3 text-slate-300" />
+                        {selectedTalent.university}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedTalent(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Close Profile"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Body Content */}
+                <div className="p-6 space-y-6 text-left">
+                  {/* About & Seeking section */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="col-span-2 space-y-2">
+                      <span className="text-[9px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
+                        [ Candidate Bio-metric ]
+                      </span>
+                      <p className="text-xs text-slate-600 leading-relaxed font-light">
+                        {selectedTalent.bio}
+                      </p>
+                    </div>
+                    <div className="space-y-2 col-span-1 border-t md:border-t-0 md:border-l md:pl-6 border-slate-100 pt-4 md:pt-0">
+                      <span className="text-[9px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
+                        [ Dynamic Engagement ]
+                      </span>
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-2">
+                          <span className="text-slate-400 text-[10px] block">Views</span>
+                          <span className="text-xs font-mono font-bold text-slate-800">
+                            {selectedTalent.views || 45}
+                          </span>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-2">
+                          <span className="text-slate-400 text-[10px] block">Connects</span>
+                          <span className="text-xs font-mono font-bold text-slate-800">
+                            {selectedTalent.connections || 12}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seeking objective */}
+                  {selectedTalent.lookingFor && (
+                    <div className="bg-slate-50/55 border border-slate-100 rounded-2xl p-4 space-y-1.5">
+                      <span className="text-[9px] font-mono text-[#355872] font-bold block uppercase tracking-wider">
+                        Target Placement Objective
+                      </span>
+                      <p className="text-xs text-slate-600 font-light leading-relaxed">
+                        {selectedTalent.lookingFor}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Technical Competencies Skills */}
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
+                      Core Verified Competencies
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedTalent.skills.map((skill, si) => (
+                        <span
+                          key={si}
+                          className="text-[10px] font-mono text-[#355872] bg-[#355872]/5 px-2 py-1 rounded-lg border border-[#355872]/15 hover:border-[#355872]/40 transition-colors"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Portfolios and Showcases Sub-section */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
+                        Showcase Portfolio Ledger
+                      </span>
+                      <span className="h-px bg-slate-100 flex-1" />
+                    </div>
+
+                    {!selectedTalent.showcases || selectedTalent.showcases.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic">No project showcase details published for this node.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {selectedTalent.showcases.map((sc) => (
+                          <div
+                            key={sc.id}
+                            className="border border-[#355872]/10 bg-white rounded-2xl p-5 shadow-sm space-y-3"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded uppercase border tracking-tight ${
+                                  sc.category === 'Dev' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                  sc.category === 'Design' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+                                  sc.category === 'CP' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse' :
+                                  'bg-purple-50 text-purple-700 border-purple-200'
+                                }`}
+                              >
+                                {sc.category} Showcase Link 
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400">Status: Verified</span>
+                            </div>
+
+                            <div className="space-y-1">
+                              <h5 className="font-sans font-black text-sm text-slate-800">
+                                {sc.title}
+                              </h5>
+                              <p className="text-xs text-slate-500 font-light leading-relaxed">
+                                {sc.description}
+                              </p>
+                            </div>
+
+                            {/* Specific Showcase Morph Data Panels */}
+                            {sc.category === 'Dev' && (
+                              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 space-y-2.5 text-[10.5px] font-mono">
+                                {sc.language && (
+                                  <div className="flex justify-between items-center text-slate-800">
+                                    <span className="text-slate-400">ACTIVE STACK</span>
+                                    <span className="font-bold text-[#355872] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                      {sc.language}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="flex gap-4 pt-1.5 border-t border-dashed border-slate-200/60">
+                                  {sc.githubUrl && (
+                                    <a
+                                      href={sc.githubUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-1.5 text-slate-600 hover:text-[#355872] underline font-bold"
+                                    >
+                                      <Github className="w-3.5 h-3.5" /> Code Repo
+                                    </a>
+                                  )}
+                                  {sc.liveUrl && (
+                                    <a
+                                      href={sc.liveUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-1.5 text-slate-600 hover:text-[#355872] underline font-bold ml-auto"
+                                    >
+                                      <ExternalLink className="w-3.5 h-3.5" /> Live Demo
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {sc.category === 'Design' && (
+                              <div className="space-y-3">
+                                {sc.imageUrl && (
+                                  <div className="rounded-xl overflow-hidden aspect-video border bg-slate-50">
+                                    <img
+                                      src={sc.imageUrl}
+                                      alt={sc.title}
+                                      className="w-full h-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  </div>
+                                )}
+                                {sc.liveUrl && (
+                                  <a
+                                    href={sc.liveUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-pink-600 hover:text-pink-800 text-[11px] font-mono font-bold hover:underline"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" /> Showcase Figma Presentation Draft
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            {sc.category === 'CP' && (
+                              <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20 rounded-xl p-3.5 mt-1 relative overflow-hidden text-slate-800">
+                                <Trophy className="absolute right-2 bottom-2 w-12 h-12 text-amber-500/10" />
+                                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                                  <div>
+                                    <span className="text-[8px] text-slate-400 block font-bold uppercase leading-none mb-1">
+                                      Platform HANDLE
+                                    </span>
+                                    <span className="font-extrabold text-slate-800">{sc.cpHandle}</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-[8px] text-slate-400 block font-bold uppercase leading-none mb-1">
+                                      Global rating
+                                    </span>
+                                    <span className="font-black text-amber-800">{sc.cpRating || 2400} pts</span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 pt-2 border-t border-dashed border-amber-500/15 flex items-center justify-between">
+                                  <span className="text-[10px] font-mono font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">
+                                    ★ {sc.cpRank || 'Grandmaster'}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-emerald-600 font-bold uppercase flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live API Checked
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {sc.category === 'Hackathon' && (
+                              <div className="bg-purple-50/70 border border-purple-150 rounded-xl p-3 text-xs font-mono text-slate-800">
+                                <div className="flex items-center gap-1.5 text-purple-800 font-bold mb-2">
+                                  <Tv className="w-4 h-4 text-purple-700" /> Demo Pitch Video Deck
+                                </div>
+                                <div className="flex gap-4 pt-2 border-t border-dashed border-purple-200 mt-1">
+                                  {sc.demoVideo && (
+                                    <a
+                                      href={sc.demoVideo}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-bold hover:underline"
+                                    >
+                                      <Play className="w-3.5 h-3.5 fill-purple-700 stroke-none" /> Play Walkthrough Walk
+                                    </a>
+                                  )}
+                                  {sc.docLink && (
+                                    <a
+                                      href={sc.docLink}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-bold hover:underline ml-auto"
+                                    >
+                                      <Globe className="w-3.5 h-3.5" /> Documentation
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Direct Outreach link buttons */}
+                  <div className="flex gap-3 pt-4 border-t border-slate-100 flex-wrap">
+                    {selectedTalent.github && (
+                      <a
+                        href={selectedTalent.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-[#355872] hover:bg-slate-100 rounded-xl text-xs font-mono font-bold text-slate-700"
+                      >
+                        <Github className="w-3.5 h-3.5" /> GitHub Profile
+                      </a>
+                    )}
+                    {selectedTalent.linkedin && (
+                      <a
+                        href={selectedTalent.linkedin}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-[#355872] hover:bg-slate-100 rounded-xl text-xs font-mono font-bold text-slate-700"
+                      >
+                        <Linkedin className="w-3.5 h-3.5" /> LinkedIn Profile
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        alert(`Direct recruitment evaluation notes logged! Interview proposal dispatched via Graph Relay to ${selectedTalent.name}.`);
+                      }}
+                      className="ml-auto inline-flex items-center gap-1.5 px-4 py-2 bg-orange-700 hover:bg-orange-850 text-white rounded-xl text-xs font-mono font-bold shadow-md transition-all cursor-pointer"
+                    >
+                      Direct Interview Offer
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Console footer */}
         <footer className="bg-slate-950 text-slate-500 py-6 px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono mt-auto border-t border-slate-900">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Talent, LoggedInUser } from '../types';
-import { Eye, Heart, PlusCircle, Github, Linkedin, Send, Sparkles, User, Briefcase, GraduationCap, MapPin, Mail, UserCheck } from 'lucide-react';
+import { Eye, Heart, PlusCircle, Github, Linkedin, Send, Sparkles, User, Briefcase, GraduationCap, MapPin, Mail, UserCheck, Trophy, Award, Tv, Play, Globe, ExternalLink } from 'lucide-react';
 
 interface SpotlightGalleryProps {
   talents: Talent[];
@@ -464,7 +464,7 @@ export default function SpotlightGallery({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="profiles-grid">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6 [column-fill:_balance]" id="profiles-grid">
           <AnimatePresence mode="popLayout">
             {filteredTalents.map((talent, index) => {
               const currentLikes = likesState[talent.id] || 0;
@@ -476,7 +476,7 @@ export default function SpotlightGallery({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.92, y: 10 }}
                   transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-                  className="bg-white border-2 border-[#355872]/15 rounded-3xl p-5 md:p-6 shadow-[4px_4px_0px_0px_rgba(53,88,114,0.08)] hover:shadow-[6px_6px_0px_0px_#355872] hover:border-[#355872] transition-all duration-300 flex flex-col justify-between relative overflow-hidden group"
+                  className="break-inside-avoid mb-6 inline-block w-full bg-white border-2 border-[#355872]/15 rounded-3xl p-5 md:p-6 shadow-[4px_4px_0px_0px_rgba(53,88,114,0.08)] hover:shadow-[6px_6px_0px_0px_#355872] hover:border-[#355872] transition-all duration-300 relative overflow-hidden group hover:shadow-[5px_5px_0px_0px_#355872]"
                 >
                   {/* Decorative corner ticks */}
                   <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-[#355872]/20" />
@@ -532,6 +532,127 @@ export default function SpotlightGallery({
                         </span>
                       ))}
                     </div>
+
+                    {/* Showcase Content Panel (Card Morphing) */}
+                    {talent.showcases && talent.showcases.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                        {talent.showcases.map((sc) => (
+                          <div key={sc.id} className="text-left">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded uppercase border tracking-tight ${
+                                sc.category === 'Dev' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                sc.category === 'Design' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+                                sc.category === 'CP' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse' :
+                                'bg-purple-50 text-purple-700 border-purple-200'
+                              }`}>
+                                {sc.category} Showcase
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400">Featured</span>
+                            </div>
+
+                            <h4 className="font-sans font-bold text-xs text-slate-800 leading-tight mb-1">{sc.title}</h4>
+                            <p className="text-[11px] text-slate-500 font-light leading-relaxed mb-3 line-clamp-2">{sc.description}</p>
+                            
+                            {/* Inner morph content details */}
+                            {sc.category === 'Dev' && (
+                              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2 text-[10px] font-mono">
+                                {sc.language && (
+                                  <div className="flex justify-between items-center text-[9px]">
+                                    <span className="text-slate-400">STACK</span>
+                                    <span className="font-bold text-[#355872] bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">{sc.language}</span>
+                                  </div>
+                                )}
+                                <div className="flex gap-3 pt-1 border-t border-dashed border-slate-200/50">
+                                  {sc.githubUrl && (
+                                    <a href={sc.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-slate-600 hover:text-[#355872] hover:underline">
+                                      <Github className="w-3 h-3" /> Repo
+                                    </a>
+                                  )}
+                                  {sc.liveUrl && (
+                                    <a href={sc.liveUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-slate-600 hover:text-[#355872] hover:underline ml-auto">
+                                      <ExternalLink className="w-3 h-3" /> Live
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {sc.category === 'Design' && (
+                              <div className="space-y-2 mt-2">
+                                {sc.imageUrl && (
+                                  <div className="relative rounded-xl overflow-hidden aspect-video border bg-slate-100 select-none group/img">
+                                    <img 
+                                      src={sc.imageUrl} 
+                                      alt={sc.title}
+                                      referrerPolicy="no-referrer"
+                                      className="w-full h-full object-cover transition-transform group-hover/img:scale-105 duration-300 animate-fade-in"
+                                    />
+                                    {/* Hover Reveal effects */}
+                                    <div className="absolute inset-0 bg-[#355872]/85 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center p-3">
+                                      <p className="text-[10px] font-mono text-white text-center font-bold tracking-tight">EXPLORE CONCEPT SHEETS</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {sc.liveUrl && (
+                                  <div className="text-[10px] font-mono">
+                                    <a href={sc.liveUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-pink-600 hover:text-pink-800 hover:underline font-bold">
+                                      <ExternalLink className="w-3 h-3" /> Presentation Draft
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {sc.category === 'CP' && (
+                              <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/25 rounded-xl p-3 mt-1 relative overflow-hidden">
+                                <div className="absolute right-1 bottom-0.5 opacity-[0.08]">
+                                  <Trophy className="w-12 h-12 text-amber-600" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                                  <div>
+                                    <span className="text-[8px] text-slate-400 block font-bold leading-none uppercase">ID HANDLE</span>
+                                    <span className="font-bold text-slate-800 break-all">{sc.cpHandle}</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-[8px] text-slate-400 block font-bold leading-none uppercase">RATING INDEX</span>
+                                    <span className="font-black text-amber-750">{sc.cpRating || 1500} pts</span>
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-2 pt-2 border-t border-dashed border-amber-500/15 flex items-center justify-between">
+                                  <span className="text-[8px] font-mono font-bold text-amber-900 bg-amber-100 px-1.5 py-0.2 rounded border border-amber-200 select-none uppercase">
+                                    ★ CF: {sc.cpRank || 'Specialist'}
+                                  </span>
+                                  <span className="text-[8px] font-mono text-emerald-600 font-bold uppercase flex items-center gap-0.5">
+                                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-ping" /> VERIFIED BADGE
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {sc.category === 'Hackathon' && (
+                              <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-3 mt-2 text-[10px] font-mono">
+                                <div className="flex items-center gap-1.5 text-purple-800 font-bold mb-1">
+                                  <Tv className="w-3.5 h-3.5 text-purple-700" /> Hackathon Demo Pitch
+                                </div>
+                                <div className="flex gap-4 pt-1.5 border-t border-dashed border-purple-250 mt-1">
+                                  {sc.demoVideo && (
+                                    <a href={sc.demoVideo} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-purple-700 hover:text-purple-900 font-bold hover:underline">
+                                      <Play className="w-3 h-3 fill-purple-700 stroke-none" /> Play Video
+                                    </a>
+                                  )}
+                                  {sc.docLink && (
+                                    <a href={sc.docLink} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-purple-700 hover:text-purple-900 font-bold hover:underline ml-auto">
+                                      <Globe className="w-3.5 h-3.5" /> Documentation
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Bottom section with statistics tracker & outbound links */}

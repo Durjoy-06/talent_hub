@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { EventHub } from '../types';
+import { EventHub, LoggedInUser } from '../types';
 import { Calendar, Users, MapPin, Tag, Plus, CheckCircle, Ticket, Compass, ArrowUpRight } from 'lucide-react';
 
 interface EventsSectionProps {
@@ -8,13 +8,31 @@ interface EventsSectionProps {
   selectedHub: string | null;
   onAddEvent: (ev: EventHub) => void;
   onRegisterAttendee: (id: string) => void;
+  currentUser?: LoggedInUser | null;
+  registeredEventIds?: string[];
 }
 
-export default function EventsSection({ events, selectedHub, onAddEvent, onRegisterAttendee }: EventsSectionProps) {
+export default function EventsSection({ 
+  events, 
+  selectedHub, 
+  onAddEvent, 
+  onRegisterAttendee,
+  currentUser = null,
+  registeredEventIds = []
+}: EventsSectionProps) {
   const [activeTab, setActiveTab] = useState<string>('All');
   const [showPostForm, setShowPostForm] = useState(false);
-  const [registeredEventIds, setRegisteredEventIds] = useState<Record<string, boolean>>({});
   const [showTicketId, setShowTicketId] = useState<string | null>(null);
+  
+  // Custom interactive toast feedback
+  const [toast, setToast] = useState<{ message: string; show: boolean } | null>(null);
+
+  const showToast = (message: string) => {
+    setToast({ message, show: true });
+    setTimeout(() => {
+      setToast(prev => prev ? { ...prev, show: false } : null);
+    }, 4500);
+  };
 
   // Form states
   const [title, setTitle] = useState('');
@@ -24,9 +42,26 @@ export default function EventsSection({ events, selectedHub, onAddEvent, onRegis
   const [organizer, setOrganizer] = useState('');
   const [description, setDescription] = useState('');
 
-  const tabs = ['All', 'Hackathon', 'Workshop', 'Bootcamp', 'Meetup'];
+  // Augmented Filter Categories: All, Active, Deadline Near, Hackathon, Workshop, Bootcamp, Meetup
+  const tabs = ['All', 'Active', 'Deadline Near', 'Hackathon', 'Workshop', 'Bootcamp', 'Meetup'];
+
+  // Identify close deadline dates relative to mid-June 2026 scheduling framework
+  const isDeadlineNear = (ev: EventHub) => {
+    // Spatial Seminar (June 18) is imminent from June 17, 2026. National NLP Hackathon (June 25) is also near.
+    return ev.id === 'e2' || ev.id === 'e1';
+  };
+
+  const isEventActive = (ev: EventHub) => {
+    return ev.registrationOpen === true;
+  };
 
   const filteredEvents = events.filter((ev) => {
+    // State Filtering (The "Senior" Way):
+    // Inside the Agenda Feed on the main page, filter out events that the current logged-in student has already registered for!
+    if (currentUser && currentUser.role === 'student' && registeredEventIds.includes(ev.id)) {
+      return false;
+    }
+
     // 1. Hub filter
     if (selectedHub && ev.division.toLowerCase() !== selectedHub.toLowerCase()) {
       return false;
@@ -34,6 +69,8 @@ export default function EventsSection({ events, selectedHub, onAddEvent, onRegis
 
     // 2. Tab filter
     if (activeTab === 'All') return true;
+    if (activeTab === 'Active') return isEventActive(ev);
+    if (activeTab === 'Deadline Near') return isDeadlineNear(ev);
     return ev.type.toLowerCase() === activeTab.toLowerCase();
   });
 
@@ -64,25 +101,40 @@ export default function EventsSection({ events, selectedHub, onAddEvent, onRegis
     setShowPostForm(false);
   };
 
-  const handleRSVP = (evId: string) => {
-    if (registeredEventIds[evId]) {
-      // show digital ticket
+  const handleRSVP = (evId: string, evTitle: string) => {
+    if (registeredEventIds.includes(evId)) {
       setShowTicketId(evId);
       return;
     }
 
     onRegisterAttendee(evId);
-    setRegisteredEventIds(prev => ({
-      ...prev,
-      [evId]: true
-    }));
-    setShowTicketId(evId);
+    showToast(`Successfully registered for "${evTitle}"!`);
   };
 
   const ticketEvent = events.find(e => e.id === showTicketId);
 
   return (
     <div id="events-agenda" className="my-20">
+      {/* Dynamic Toast Notification Feedback */}
+      <AnimatePresence>
+        {toast && toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 80, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            className="fixed bottom-8 right-8 z-55 bg-slate-900 border border-slate-800/80 text-[#F7F8F0] px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-sans max-w-sm select-none backdrop-blur-md"
+            style={{ position: 'fixed', bottom: '2rem', right: '2rem' }}
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shrink-0">
+              <CheckCircle className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-emerald-400 font-black block tracking-wider uppercase">[ DIGITAL RESERVATION ]</span>
+              <p className="text-xs font-light text-slate-100 leading-snug">{toast.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>
           <span className="text-xs font-mono tracking-widest text-[#7AAACE] uppercase flex items-center gap-1.5 font-semibold">
@@ -329,7 +381,7 @@ export default function EventsSection({ events, selectedHub, onAddEvent, onRegis
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="events-grid shadow">
           {filteredEvents.map((ev) => {
-            const hasRSVPd = registeredEventIds[ev.id];
+            const hasRSVPd = registeredEventIds.includes(ev.id);
 
             return (
               <motion.div
@@ -381,16 +433,16 @@ export default function EventsSection({ events, selectedHub, onAddEvent, onRegis
                   </div>
 
                   <button
-                    onClick={() => handleRSVP(ev.id)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all duration-300 flex items-center gap-1.5 shadow-3xs ${
+                    onClick={() => handleRSVP(ev.id, ev.title)}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all duration-350 flex items-center gap-1.5 cursor-pointer border ${
                       hasRSVPd
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100'
-                        : 'bg-[#355872] hover:bg-[#355872]/95 text-white'
+                        ? 'bg-[#F7F8F0] border-emerald-500 text-emerald-600 hover:bg-emerald-50'
+                        : 'bg-[#355872] hover:bg-[#355872]/95 border-transparent text-white hover:shadow-[3px_3px_0px_0px_rgba(53,88,114,0.18)]'
                     }`}
                   >
                     {hasRSVPd ? (
                       <>
-                        <Ticket className="w-3.5 h-3.5" /> View Ticket
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Registered
                       </>
                     ) : (
                       <>

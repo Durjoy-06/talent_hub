@@ -188,7 +188,7 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
                       transition={{ type: 'spring', stiffness: 400, damping: 12 }}
                       className={`w-5 h-5 rounded-none flex items-center justify-center border-2 transition-all duration-300 shadow-[0_0_8px_rgba(0,0,0,0.5)] ${
                         isSelected
-                          ? 'bg-[#355872] border-[#9CD5FF] scale-110 shadow-[0_0_12px_rgba(156,213,255,0.6)]'
+                          ? 'bg-[#355872] border-[#FECE2F] scale-110 shadow-[0_0_12px_rgba(254,206,47,0.5)]'
                           : isActive
                             ? 'bg-[#355872] border-[#7AAACE]'
                             : 'bg-[#080E14] border-[#355872]/60 hover:border-[#9CD5FF]'
@@ -196,7 +196,7 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
                     >
                       <div className={`w-2 h-2 rounded-none ${
                         isSelected 
-                          ? 'bg-amber-400 pulsing-dot' 
+                          ? 'bg-[#D0674B] pulsing-dot' 
                           : isActive 
                             ? 'bg-emerald-400 animate-pulse' 
                             : 'bg-[#7AAACE] group-hover:bg-[#9CD5FF]'
@@ -207,7 +207,7 @@ export default function NetworkMap({ onSelectHub, selectedHub }: NetworkMapProps
                     <div className="absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap overflow-visible z-30 pointer-events-none">
                       <div className={`px-2.5 py-1 rounded-none text-[9px] font-bold font-mono border transition-all duration-300 ${
                         isSelected
-                          ? 'bg-[#9CD5FF] text-slate-950 border-[#9CD5FF] shadow-[0_0_8px_rgba(156,213,255,0.4)]'
+                          ? 'bg-[#FECE2F] text-slate-950 border-[#FECE2F] shadow-[0_0_8px_rgba(254,206,47,0.4)]'
                           : isActive
                             ? 'bg-white text-slate-950 border-white shadow-md'
                             : 'bg-[#050b14]/90 text-[#7AAACE] border-[#355872]/45 opacity-80 group-hover:opacity-100 group-hover:border-[#9CD5FF] group-hover:text-white'
