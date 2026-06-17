@@ -14,7 +14,9 @@ import {
   Globe, 
   Cpu,
   Bookmark,
-  UserCheck
+  UserCheck,
+  Bell,
+  FileText
 } from 'lucide-react';
 import { 
   Talent, 
@@ -22,6 +24,7 @@ import {
   EventHub, 
   LoggedInUser,
   Application,
+  AppNotification,
   INITIAL_TALENTS, 
   INITIAL_OPPORTUNITIES, 
   INITIAL_EVENTS, 
@@ -42,6 +45,8 @@ import StatsDashboard from './components/StatsDashboard';
 import PortalGateway from './components/PortalGateway';
 import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
+import ChatButton from './components/ChatButton';
+import NotificationSheet from './components/NotificationSheet';
 
 // @ts-ignore
 import huntclubBgTeam from './assets/images/huntclub_bg_team_v2_1781179955964.jpg';
@@ -153,6 +158,162 @@ export default function App() {
     localStorage.setItem('talenthub_bd_stats', JSON.stringify(stats));
   }, [stats]);
 
+  // Synchronize student event registrations from backend junction table (The "Senior" Way)
+  useEffect(() => {
+    if (user && user.role === 'student') {
+      fetch(`/api/registrations?studentId=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success) {
+            const serverEventIds = data.registrations.map((r: any) => r.eventId);
+            setRegisteredEventIds(prev => {
+              const uniqueIds = Array.from(new Set([...prev, ...serverEventIds]));
+              return uniqueIds;
+            });
+          }
+        })
+        .catch(err => {
+          console.warn("Ecosystem database registrations fetch fallback to client cache:", err);
+        });
+    }
+  }, [user]);
+
+
+  // --- Notifications Real-time Alert System ---
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [studentRequestedTab, setStudentRequestedTab] = useState<'growth' | 'applications' | 'events' | 'saved' | 'showcase' | undefined>(undefined);
+  const [organizerRequestedTab, setOrganizerRequestedTab] = useState<'command' | 'applicants' | 'postings' | 'publish' | undefined>(undefined);
+
+  // Sync / Stream from Server-Sent-Events (SSE) Real-time Engine
+  useEffect(() => {
+    const targetUserId = user ? (user.role === 'student' ? user.id : 'admin_master') : 'guest';
+    
+    // First load current notifications
+    fetch(`/api/notifications?userId=${targetUserId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success) {
+          setNotifications(data.notifications);
+        }
+      })
+      .catch(err => console.warn("Fallback to client storage for alerts database:", err));
+
+    // Connect Server-Sent-Events Real-time telemetric link
+    const eventSource = new EventSource(`/api/notifications/stream?userId=${targetUserId}`);
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const notif = JSON.parse(event.data);
+        if (notif && notif.id) {
+          setNotifications(prev => {
+            if (prev.some(n => n.id === notif.id)) return prev;
+            return [notif, ...prev];
+          });
+        }
+      } catch (e) {
+        // Heartbeats are safely skipped
+      }
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [user]);
+
+  // Handle Mark Single Notification Read (Optimistic UI implementation)
+  const handleMarkRead = async (id: string) => {
+    // 1. Optimistic local update
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+
+    // 2. Persist update on the database
+    try {
+      await fetch(`/api/notifications/${id}/read`, { method: 'PUT' });
+    } catch (err) {
+      console.error("Backend sync failed for dismiss. State maintained locally:", err);
+    }
+  };
+
+  // Handle Mark All Notifications Read (Optimistic UI implementation)
+  const handleMarkAllRead = async () => {
+    const targetUserId = user ? (user.role === 'student' ? user.id : 'admin_master') : 'guest';
+    // 1. Optimistic local update
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+    // 2. Persist update on the database
+    try {
+      await fetch(`/api/notifications/read-all?userId=${targetUserId}`, { method: 'PUT' });
+    } catch (err) {
+      console.error("Backend sync failed for mark all read. State maintained locally:", err);
+    }
+  };
+
+  // Dispatch live notification (Optimistic UI)
+  const triggerNotification = async (targetUserId: string, type: 'Application' | 'Event' | 'System', message: string, linkStr: string) => {
+    const tempId = 'notif_temp_' + Math.random().toString(36).substring(4);
+    const tempNotif: AppNotification = {
+      id: tempId,
+      userId: targetUserId,
+      type,
+      message,
+      link: linkStr,
+      isRead: false,
+      createdAt: new Date().toISOString()
+    };
+
+    // Optimistically update client UI
+    setNotifications(prev => [tempNotif, ...prev]);
+
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: targetUserId, type, message, link: linkStr })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        // Reconcile optimistic ID with physical database node ID
+        setNotifications(prev => prev.map(n => n.id === tempId ? data.notification : n));
+      }
+    } catch (err) {
+      console.warn("Real-time network dispatch offline, keeping local optimistic clone:", err);
+    }
+  };
+
+  // Direct Telemetry Routing/Deep-Linking handler
+  const handleNotificationNavigation = (link: string) => {
+    if (!user) {
+      setView('auth');
+      return;
+    }
+
+    if (user.role === 'student') {
+      setView('student-dashboard');
+      if (link === 'applications') {
+        setStudentRequestedTab('applications');
+      } else if (link === 'events') {
+        setStudentRequestedTab('events');
+      } else if (link === 'saved') {
+        setStudentRequestedTab('saved');
+      } else {
+        setStudentRequestedTab('growth');
+      }
+    } else if (user.role === 'organizer') {
+      setView('organizer-dashboard');
+      if (link === 'applicants') {
+        setOrganizerRequestedTab('applicants');
+      } else if (link === 'postings') {
+        setOrganizerRequestedTab('postings');
+      } else if (link === 'publish') {
+        setOrganizerRequestedTab('publish');
+      } else {
+        setOrganizerRequestedTab('command');
+      }
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
 
   // Session Handlers
   const handleLoginSuccess = (loggedInUser: LoggedInUser) => {
@@ -168,6 +329,28 @@ export default function App() {
     setUser(null);
     setView('landing');
     localStorage.removeItem('talenthub_bd_user');
+  };
+
+  const handleUpdateProfile = (updatedUser: LoggedInUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('talenthub_bd_user', JSON.stringify(updatedUser)); // persistent commit
+    
+    // Sync to talents list
+    setTalents((prev: Talent[]) => prev.map((t: Talent) => {
+      if (t.name === updatedUser.name || t.id === updatedUser.id) {
+        return {
+          ...t,
+          name: updatedUser.name,
+          university: updatedUser.university || t.university,
+          division: updatedUser.division || t.division,
+          skills: updatedUser.skills || t.skills,
+          bio: updatedUser.bio || t.bio,
+          avatarUrl: updatedUser.avatar || t.avatarUrl,
+          showcases: updatedUser.showcases || t.showcases,
+        };
+      }
+      return t;
+    }));
   };
 
 
@@ -206,6 +389,10 @@ export default function App() {
     setOpportunities(prev => 
       prev.map(o => o.id === oppId ? { ...o, applicantsCount: o.applicantsCount + 1 } : o)
     );
+
+    // 3. Dispatch global real-time notifications for student and admin command node
+    triggerNotification('admin_master', 'Application', `New applicant ${user.name} applied for ${opp.title} at ${opp.organization}.`, 'applicants');
+    triggerNotification(user.id, 'Application', `Your application for ${opp.title} at ${opp.organization} has been successfully logged and is under review.`, 'applications');
   };
 
   const handleSaveOpportunity = (oppId: string) => {
@@ -219,33 +406,58 @@ export default function App() {
     );
   };
 
-  const handleRegisterEvent = (eventId: string) => {
+  const handleRegisterEvent = async (eventId: string) => {
     if (!user) {
       setView('auth');
       return;
     }
 
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+
     if (registeredEventIds.includes(eventId)) {
-      alert('You have already reserved a seat for this event timeline.');
       return;
     }
 
-    // Lock in event id
+    // 1. Optimistic UI Updates: Morph states instantly!
     setRegisteredEventIds(prev => [...prev, eventId]);
-
-    // Increment global database counts
     setEvents(prev => 
       prev.map(e => e.id === eventId ? { ...e, attendeesCount: e.attendeesCount + 1 } : e)
     );
 
-    alert('REGISTRATION SECURED: Your booking token is generated. View your chronological timeline schedule on the workspace dashboard.');
+    // Realtime notifications alert logging
+    triggerNotification(user.id, 'Event', `Seat reserved successfully for event agenda: "${ev.title}". Dynamic ticket node dispatched.`, 'events');
+
+    // 2. Server Junction Sync: API post in the background
+    try {
+      await fetch('/api/registrations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ studentId: user.id, eventId })
+      });
+    } catch (err) {
+      console.warn("Background event registration sync skipped:", err);
+    }
   };
 
 
   // Organizer Action Integrations
   const handleChangeApplicationStatus = (appId: string, newStatus: Application['status']) => {
+    const appLocal = applications.find(a => a.id === appId);
+    if (!appLocal) return;
+
     setApplications(prev => 
       prev.map(a => a.id === appId ? { ...a, status: newStatus } : a)
+    );
+
+    // Notify the student developer in real-time
+    triggerNotification(
+      appLocal.studentId, 
+      'Application', 
+      `Your application status for "${appLocal.opportunityTitle}" at ${appLocal.organization} has been upgraded to [${newStatus}]!`, 
+      'applications'
     );
   };
 
@@ -256,6 +468,13 @@ export default function App() {
 
   const handleAddOpportunity = (newOpp: Opportunity) => {
     setOpportunities(prev => [newOpp, ...prev]);
+    // Dispatch system-wide alert to all subscriber streams
+    triggerNotification(
+      'all', 
+      'Application', 
+      `New position listed: ${newOpp.title} at ${newOpp.organization}. Grid submission open now.`, 
+      'opportunities'
+    );
   };
 
   const handleDeleteOpportunity = (oppId: string) => {
@@ -267,6 +486,13 @@ export default function App() {
 
   const handleAddEvent = (newEvent: EventHub) => {
     setEvents(prev => [newEvent, ...prev]);
+    // Dispatch system-wide alert to all subscriber streams
+    triggerNotification(
+      'all', 
+      'Event', 
+      `New cluster bootcamp launched: "${newEvent.title}". Reserve your timeline seat!`, 
+      'events'
+    );
   };
 
   const handleDeleteEvent = (eventId: string) => {
@@ -307,18 +533,23 @@ export default function App() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative group cursor-pointer" onClick={() => scrollToSection('landing')}>
-                    <div className="w-10 h-10 rounded-none bg-[#355872] border border-[#355872]/20 flex items-center justify-center text-white shadow-md hover:rotate-12 transition-all duration-300">
-                      <Cpu className="w-5 h-5 text-[#9CD5FF] group-hover:scale-110 transition-transform" />
+                    <div className="w-11 h-11 rounded-none bg-white border-2 border-[#355872] flex items-center justify-center text-white shadow-md hover:scale-105 group-hover:rotate-6 transition-all duration-300 overflow-hidden">
+                      <img 
+                        src="/src/assets/images/star_click_logo_1781633043714.jpg" 
+                        alt="TalentHub BD Logo" 
+                        className="w-full h-full object-cover select-none"
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
                     <div className="absolute -bottom-1 -right-1 flex gap-0.5">
-                      <div className="w-2.5 h-2.5 rounded-none bg-emerald-600 border border-[#F7F8F0]" />
-                      <div className="w-2.5 h-2.5 rounded-none bg-red-500 border border-[#F7F8F0]" />
+                      <div className="w-2.5 h-2.5 rounded-none bg-[#FECE2F] border border-[#F7F8F0] shadow-sm" />
+                      <div className="w-2.5 h-2.5 rounded-none bg-[#D0674B] border border-[#F7F8F0] shadow-sm" />
                     </div>
                   </div>
 
                   <div className="cursor-pointer select-none" onClick={() => scrollToSection('landing')}>
-                    <span className="font-display font-extrabold text-xl text-[#355872] tracking-tighter">
-                      TalentHub<span className="text-[#7AAACE] font-serif italic font-normal">.BD</span>
+                    <span className="font-display font-extrabold text-xl text-[#355872] tracking-tighter block sm:inline">
+                      TalentHub<span className="text-[#D0674B] font-serif italic font-extrabold">.BD</span>
                     </span>
                     <span className="block text-[8px] font-mono text-slate-500 font-semibold tracking-widest uppercase">SYNERGETIC GRID_NET</span>
                   </div>
@@ -365,6 +596,27 @@ export default function App() {
 
                 {/* Entry Workspace Control Badge */}
                 <div className="flex items-center gap-2">
+                  {user && (
+                    <div className="relative mr-1.5 shrink-0">
+                      {unreadCount > 0 && (
+                        <motion.span 
+                          animate={{ scale: [1, 1.3, 1] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                          className="absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-orange-600 text-[8px] font-mono font-black text-white shadow-sm border-2 border-[#F7F8F0] z-10" 
+                        >
+                          {unreadCount}
+                        </motion.span>
+                      )}
+                      <button 
+                        onClick={() => setIsNotificationOpen(true)}
+                        className="p-2.5 bg-white border border-[#355872]/20 hover:border-[#355872] rounded-xl text-slate-500 hover:text-slate-800 transition-all cursor-pointer relative"
+                        aria-label="Toggle notifications menu"
+                      >
+                        <Bell className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
                   {user ? (
                     <button
                       onClick={() => setView(user.role === 'student' ? 'student-dashboard' : 'organizer-dashboard')}
@@ -539,6 +791,8 @@ export default function App() {
                 selectedHub={selectedHub}
                 onAddEvent={handleAddEvent}
                 onRegisterAttendee={handleRegisterEvent}
+                currentUser={user}
+                registeredEventIds={registeredEventIds}
               />
             </main>
 
@@ -642,6 +896,10 @@ export default function App() {
               onApplyOpportunity={handleApplyOpportunity}
               onSaveOpportunity={handleSaveOpportunity}
               onRegisterEvent={handleRegisterEvent}
+              onUpdateProfile={handleUpdateProfile}
+              requestedTab={studentRequestedTab}
+              onOpenNotifications={() => setIsNotificationOpen(true)}
+              unreadCount={unreadCount}
             />
           </motion.div>
         )}
@@ -661,16 +919,34 @@ export default function App() {
               opportunities={opportunities}
               events={events}
               applications={applications}
+              talents={talents}
               onChangeApplicationStatus={handleChangeApplicationStatus}
               onAddOpportunity={handleAddOpportunity}
               onAddEvent={handleAddEvent}
               onDeleteOpportunity={handleDeleteOpportunity}
               onDeleteEvent={handleDeleteEvent}
+              requestedTab={organizerRequestedTab}
+              onOpenNotifications={() => setIsNotificationOpen(true)}
+              unreadCount={unreadCount}
             />
           </motion.div>
         )}
 
       </AnimatePresence>
+
+      {/* Real-time Ecosystem slide-over panel */}
+      <NotificationSheet
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        notifications={notifications}
+        onMarkRead={handleMarkRead}
+        onMarkAllRead={handleMarkAllRead}
+        onNavigate={handleNotificationNavigation}
+        userRole={user?.role || 'guest'}
+      />
+
+      {/* Global Startup-Inspired Interactive AI Assistant */}
+      <ChatButton user={user} />
 
     </div>
   );

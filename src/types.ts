@@ -1,3 +1,20 @@
+export interface ShowcaseItem {
+  id: string;
+  category: 'Dev' | 'Design' | 'CP' | 'Hackathon';
+  title: string;
+  imageUrl?: string;
+  githubUrl?: string;
+  liveUrl?: string;
+  language?: string;
+  cpPlatform?: 'Codeforces' | 'CodeChef';
+  cpHandle?: string;
+  cpRating?: number;
+  cpRank?: string;
+  demoVideo?: string;
+  docLink?: string;
+  description: string;
+}
+
 export interface Talent {
   id: string;
   name: string;
@@ -13,6 +30,7 @@ export interface Talent {
   github?: string;
   linkedin?: string;
   featured: boolean;
+  showcases?: ShowcaseItem[];
 }
 
 export interface Opportunity {
@@ -150,7 +168,18 @@ export const INITIAL_TALENTS: Talent[] = [
     lookingFor: 'Collaborators for Bangla LLM paper & AI labs.',
     github: 'https://github.com',
     linkedin: 'https://linkedin.com',
-    featured: true
+    featured: true,
+    showcases: [
+      {
+        id: 'sc-t1-1',
+        category: 'Dev',
+        title: 'Bangla-LLM-Core',
+        githubUrl: 'https://github.com/zareen/bangla-llm-core',
+        liveUrl: 'https://bangla-llm-demo.buet.ac.bd',
+        language: 'Python',
+        description: 'A low-resource dialect-focused Large Language Model fine-tuned for modern conversational Bengali.'
+      }
+    ]
   },
   {
     id: 't2',
@@ -165,7 +194,18 @@ export const INITIAL_TALENTS: Talent[] = [
     views: 2430,
     lookingFor: 'Remote DevOps internship or high-scaling startup projects.',
     github: 'https://github.com',
-    featured: true
+    featured: true,
+    showcases: [
+      {
+        id: 'sc-t2-1',
+        category: 'Dev',
+        title: 'D-Cache-Ring',
+        githubUrl: 'https://github.com/faisal/d-cache',
+        liveUrl: 'https://dcache.network',
+        language: 'Go',
+        description: 'Distributed cache ring utilizing gRPC, Raft consensus for extreme partition tolerance.'
+      }
+    ]
   },
   {
     id: 't3',
@@ -179,7 +219,17 @@ export const INITIAL_TALENTS: Talent[] = [
     connections: 289,
     views: 1110,
     lookingFor: 'Full-time junior designer roles in visual-heavy teams.',
-    featured: true
+    featured: true,
+    showcases: [
+      {
+        id: 'sc-t3-1',
+        category: 'Design',
+        title: 'Shonali-Pay Fintech Portal',
+        imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600',
+        liveUrl: 'https://figma.com/@shonali-pay',
+        description: 'Elegantly spatial high-contrast mobile banking experience conceptualized for rural micro-ventures.'
+      }
+    ]
   },
   {
     id: 't4',
@@ -193,8 +243,20 @@ export const INITIAL_TALENTS: Talent[] = [
     connections: 610,
     views: 3100,
     lookingFor: 'Systems Programming fellowships or algorithmic problem-setter roles.',
-    github: 'https://github.com',
-    featured: true
+    github: 'https://github.com/tahmid-khan',
+    featured: true,
+    showcases: [
+      {
+        id: 'sc-t4-1',
+        category: 'CP',
+        title: 'Tahmid\'s Codeforces Hub',
+        cpPlatform: 'Codeforces',
+        cpHandle: 'tourist',
+        cpRating: 3740,
+        cpRank: 'Legendary Grandmaster',
+        description: 'Active Codeforces and CodeChef problem solver and tester. Enjoys multi-threading and compiler optimization.'
+      }
+    ]
   },
   {
     id: 't5',
@@ -208,7 +270,17 @@ export const INITIAL_TALENTS: Talent[] = [
     connections: 195,
     views: 890,
     lookingFor: 'Seed-stage agri-tech co-founders & supply chain partners.',
-    featured: false
+    featured: false,
+    showcases: [
+      {
+        id: 'sc-t5-1',
+        category: 'Hackathon',
+        title: 'AgriMod Solar Transpiration Sensor',
+        demoVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        docLink: 'https://github.com/sajid/agrimod-telemetry',
+        description: 'Designed at Ruet Innovation Hackathon. Consists of a real-time transpiration metrics broadcast nodes via MQTT.'
+      }
+    ]
   },
   {
     id: 't6',
@@ -222,7 +294,17 @@ export const INITIAL_TALENTS: Talent[] = [
     connections: 240,
     views: 1200,
     lookingFor: 'Data visualization consulting roles or climate-tech labs.',
-    featured: false
+    featured: false,
+    showcases: [
+      {
+        id: 'sc-t6-1',
+        category: 'Design',
+        title: 'Delta Shift Seasonal Map',
+        imageUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=600',
+        liveUrl: 'https://delta-viz.kuet.ac.bd',
+        description: 'Interactive map displaying coastal erosion and silt buildup around Khulna over 45 monsoon seasons.'
+      }
+    ]
   }
 ];
 
@@ -343,6 +425,10 @@ export interface LoggedInUser {
   bio?: string;
   github?: string;
   linkedin?: string;
+  enrollmentYear?: string;
+  phone?: string;
+  address?: string;
+  showcases?: ShowcaseItem[];
 }
 
 export interface Application {
@@ -400,4 +486,15 @@ export const INITIAL_APPLICATIONS: Application[] = [
     dateApplied: 'June 11, 2026'
   }
 ];
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: 'Application' | 'Event' | 'System';
+  message: string;
+  link: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 
