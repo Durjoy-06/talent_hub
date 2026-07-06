@@ -150,6 +150,25 @@ export default function App() {
     setStats((prev: any) => ({ ...prev, activeProjects: opportunities.length }));
   }, [opportunities]);
 
+<<<<<<< HEAD
+=======
+  // Dynamic live organizations count sync
+  useEffect(() => {
+    fetch('/api/organizations')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.organizations) {
+          const activeOrgs = data.organizations.filter((o: any) => !o.deactivated).length;
+          setStats((prev: any) => ({ 
+            ...prev, 
+            connectedHubs: Math.max(8, activeOrgs) // Minimum 8 for visual weight
+          }));
+        }
+      })
+      .catch(err => console.error("Error syncing platform stats:", err));
+  }, []);
+
+>>>>>>> pr/chat-and-local-dev-fix
   useEffect(() => {
     localStorage.setItem('talenthub_bd_events', JSON.stringify(events));
   }, [events]);

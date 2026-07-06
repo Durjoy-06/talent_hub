@@ -36,7 +36,12 @@ import {
   Code,
   Image,
   Award,
+<<<<<<< HEAD
   Video
+=======
+  Video,
+  Building
+>>>>>>> pr/chat-and-local-dev-fix
 } from 'lucide-react';
 import { LoggedInUser, Opportunity, EventHub, Application } from '../types';
 
@@ -108,7 +113,11 @@ interface StudentDashboardProps {
   onSaveOpportunity: (opportunityId: string) => void;
   onRegisterEvent: (eventId: string) => void;
   onUpdateProfile?: (updatedUser: LoggedInUser) => void;
+<<<<<<< HEAD
   requestedTab?: 'growth' | 'applications' | 'events' | 'saved' | 'showcase';
+=======
+  requestedTab?: 'growth' | 'applications' | 'events' | 'saved' | 'showcase' | 'organizations';
+>>>>>>> pr/chat-and-local-dev-fix
   onOpenNotifications?: () => void;
   unreadCount?: number;
 }
@@ -447,7 +456,28 @@ export default function StudentDashboard({
 
     setIsEditing(false);
   };
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'growth' | 'applications' | 'events' | 'saved' | 'showcase'>('growth');
+=======
+  const [activeTab, setActiveTab] = useState<'growth' | 'applications' | 'events' | 'saved' | 'showcase' | 'organizations'>('growth');
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [isLoadingOrgs, setIsLoadingOrgs] = useState<boolean>(false);
+  const [orgSearchQuery, setOrgSearchQuery] = useState<string>('');
+  const [selectedOrgDivision, setSelectedOrgDivision] = useState<string>('All');
+
+  useEffect(() => {
+    setIsLoadingOrgs(true);
+    fetch('/api/organizations')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.organizations) {
+          setOrganizations(data.organizations);
+        }
+      })
+      .catch(err => console.error("Error loading organizations:", err))
+      .finally(() => setIsLoadingOrgs(false));
+  }, [activeTab]);
+>>>>>>> pr/chat-and-local-dev-fix
   const [dashboardToast, setDashboardToast] = useState<{ message: string; show: boolean } | null>(null);
   const [morphingEventId, setMorphingEventId] = useState<string | null>(null);
   const [discoveryTab, setDiscoveryTab] = useState<'All' | 'Active' | 'Deadline Near'>('All');
@@ -642,6 +672,27 @@ export default function StudentDashboard({
             </button>
 
             <button
+<<<<<<< HEAD
+=======
+              onClick={() => setActiveTab('organizations')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium transition-all ${
+                activeTab === 'organizations' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
+                  : 'hover:bg-slate-800 hover:text-slate-200'
+              }`}
+              id="nav-organizations-tab-btn"
+            >
+              <Building className="w-4 h-4 shrink-0" />
+              {isSidebarExpanded && <span>[ Club Directory ]</span>}
+              {organizations.length > 0 && isSidebarExpanded && (
+                <span className="absolute right-3 bg-indigo-600 text-white text-[9px] rounded-full w-4.5 h-4.5 flex items-center justify-center font-bold">
+                  {organizations.length}
+                </span>
+              )}
+            </button>
+
+            <button
+>>>>>>> pr/chat-and-local-dev-fix
               onClick={() => setActiveTab('saved')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium transition-all ${
                 activeTab === 'saved' 
@@ -1246,6 +1297,199 @@ export default function StudentDashboard({
               </motion.div>
             )}
 
+<<<<<<< HEAD
+=======
+            {activeTab === 'organizations' && (
+              <motion.div
+                key="organizations_portal"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {/* Header panel */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-2 border-b border-slate-200 gap-4">
+                  <div>
+                    <span className="text-xs font-mono tracking-widest text-[#355872] uppercase font-semibold">[ COMMUNITY_DIRECTORY_STREAM ]</span>
+                    <h2 className="font-display text-2xl font-black text-slate-800">Verified Organizations & Clubs</h2>
+                    <p className="text-xs text-slate-500 font-light mt-0.5 font-sans">Explore local student communities, regional tech networks, and hub coordinates.</p>
+                  </div>
+                  
+                  <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-[#355872]/5 border text-[#355872] font-black">
+                    {organizations.filter(o => !o.deactivated).length} Active Nodes
+                  </span>
+                </div>
+
+                {/* Filters Row */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="md:col-span-4 relative">
+                    <input 
+                      type="text"
+                      placeholder="Search name, mission or keywords..."
+                      value={orgSearchQuery}
+                      onChange={(e) => setOrgSearchQuery(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none font-sans shadow-sm"
+                      id="org-directory-search-input"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-8 flex flex-wrap gap-1.5 items-center">
+                    {['All', 'Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna'].map(div => (
+                      <button
+                        key={div}
+                        onClick={() => setSelectedOrgDivision(div)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                          selectedOrgDivision === div 
+                            ? 'bg-blue-600 text-white shadow-sm' 
+                            : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-800'
+                        }`}
+                      >
+                        {div === 'All' ? '[ All Hubs ]' : `[ ${div} ]`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Loading state */}
+                {isLoadingOrgs ? (
+                  <div className="p-12 text-center text-slate-400 font-mono text-xs animate-pulse">
+                    <div className="w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin mx-auto mb-3" />
+                    Synchronizing organization directories...
+                  </div>
+                ) : (() => {
+                  const filtered = organizations.filter(o => {
+                    if (o.deactivated) return false;
+                    const matchesSearch = o.org_name.toLowerCase().includes(orgSearchQuery.toLowerCase()) || 
+                                          o.bio.toLowerCase().includes(orgSearchQuery.toLowerCase());
+                    const matchesDiv = selectedOrgDivision === 'All' || o.location.toLowerCase().includes(selectedOrgDivision.toLowerCase());
+                    return matchesSearch && matchesDiv;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="bg-white border rounded-3xl p-12 text-center text-slate-400 space-y-4">
+                        <Building className="w-12 h-12 text-slate-300 mx-auto" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold font-mono text-slate-600 uppercase">[ NO CORRESPONDING HUBS RETRIEVED ]</p>
+                          <p className="text-xs text-slate-500 font-light max-w-sm mx-auto font-sans">
+                            No verified student club or organization node matches your current search criteria.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {filtered.map(org => {
+                        const orgOpps = opportunities.filter(opp => opp.organization.toLowerCase() === org.org_name.toLowerCase());
+                        const orgEvents = events.filter(ev => ev.organizer.toLowerCase().includes(org.org_name.toLowerCase()));
+
+                        return (
+                          <div 
+                            key={org.id} 
+                            className="bg-white border-2 border-slate-200/80 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between hover:border-slate-800 transition-all group"
+                          >
+                            <div>
+                              {/* Cover banner image */}
+                              <div className="h-28 relative bg-slate-200 overflow-hidden">
+                                {org.banner_url ? (
+                                  <img 
+                                    src={org.banner_url} 
+                                    alt="Cover Banner" 
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-400 font-mono">
+                                    [ NO BANNER LOADED ]
+                                  </div>
+                                )}
+                                
+                                <div className="absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md px-2 py-0.5 rounded text-[9px] font-mono font-bold text-white border border-slate-700">
+                                  {org.location || 'Bangladesh'}
+                                </div>
+                              </div>
+
+                              {/* Logo overlay and actions */}
+                              <div className="px-5 pb-5 relative">
+                                <div className="flex justify-between items-end -translate-y-5 h-8">
+                                  {org.logo_url ? (
+                                    <div className="w-14 h-14 bg-white border-2 border-slate-100 shadow-md rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                                      <img src={org.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-14 h-14 bg-slate-300 rounded-xl border-2 border-slate-100 flex items-center justify-center text-[8px] font-mono text-slate-500">
+                                      [ LOGO ]
+                                    </div>
+                                  )}
+
+                                  {org.website_url && (
+                                    <a 
+                                      href={org.website_url.startsWith('http') ? org.website_url : `https://${org.website_url}`} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 rounded text-[9px] font-mono font-bold border border-indigo-200/50 flex items-center gap-1 shrink-0"
+                                    >
+                                      Website <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+
+                                {/* Main Text detail */}
+                                <div className="space-y-2 mt-1">
+                                  <div className="text-left font-sans">
+                                    <h4 className="font-display font-black text-sm text-slate-800 group-hover:text-blue-900 transition-colors uppercase tracking-tight">
+                                      {org.org_name}
+                                    </h4>
+                                    <span className="text-[10px] font-mono text-slate-400 font-medium block">
+                                      Node ID: {org.id}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-xs text-slate-600 font-light leading-relaxed min-h-[48px] bg-slate-50/50 p-3 rounded-xl border border-slate-100 text-left font-sans block">
+                                    {org.bio || 'This organization has not specified a biography or mission statement yet.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Linked Listings Counters */}
+                            <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center text-[10px] font-mono">
+                              <div className="flex gap-4">
+                                <span className={orgOpps.length > 0 ? 'text-blue-700 font-bold' : 'text-slate-400'}>
+                                  Opportunities: {orgOpps.length}
+                                </span>
+                                <span className={orgEvents.length > 0 ? 'text-emerald-700 font-bold' : 'text-slate-400'}>
+                                  Events: {orgEvents.length}
+                                </span>
+                              </div>
+                              
+                              <button
+                                onClick={() => {
+                                  setDashboardToast({
+                                    message: `Loaded all dynamic listings from ${org.org_name}!`,
+                                    show: true
+                                  });
+                                  setTimeout(() => setDashboardToast(null), 3500);
+                                  setActiveTab('growth');
+                                }}
+                                className="text-slate-500 hover:text-slate-900 font-bold"
+                              >
+                                [ View Listings ]
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+              </motion.div>
+            )}
+
+>>>>>>> pr/chat-and-local-dev-fix
             {activeTab === 'saved' && (
               <motion.div
                 key="saved"

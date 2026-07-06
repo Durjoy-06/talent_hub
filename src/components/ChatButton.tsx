@@ -74,6 +74,19 @@ export default function ChatButton({ user }: ChatButtonProps) {
   }, [messages, isOpen, isLoading]);
 
   // Magnetic Hover Math
+<<<<<<< HEAD
+=======
+  const handleToggleChat = () => {
+    setIsOpen(prev => !prev);
+  };
+
+  const handleCloseChat = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setIsOpen(false);
+  };
+
+>>>>>>> pr/chat-and-local-dev-fix
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!buttonRef.current) return;
     const { clientX, clientY } = e;
@@ -201,7 +214,11 @@ export default function ChatButton({ user }: ChatButtonProps) {
             {/* Elegant Top Header with Apple/Stripe-inspired aesthetic */}
             <div className="bg-[#355872] p-4 text-white flex justify-between items-center relative overflow-hidden">
               {/* Absolutes for elegant styling background */}
+<<<<<<< HEAD
               <div className="absolute top-[-50px] right-[-50px] w-36 h-36 bg-white/5 rounded-full blur-xl" />
+=======
+              <div className="absolute top-[-50px] right-[-50px] w-36 h-36 bg-white/5 rounded-full blur-xl pointer-events-none" />
+>>>>>>> pr/chat-and-local-dev-fix
               
               <div className="flex items-center gap-3 relative z-10">
                 <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/15">
@@ -225,8 +242,14 @@ export default function ChatButton({ user }: ChatButtonProps) {
               </div>
 
               <button 
+<<<<<<< HEAD
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors pointer-events-auto"
+=======
+                type="button"
+                onClick={(e) => handleCloseChat(e)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors pointer-events-auto relative z-20"
+>>>>>>> pr/chat-and-local-dev-fix
                 aria-label="Close assistant panel"
                 id="close-chat-btn"
               >
@@ -323,7 +346,11 @@ export default function ChatButton({ user }: ChatButtonProps) {
         ref={buttonRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+<<<<<<< HEAD
         onClick={() => setIsOpen(!isOpen)}
+=======
+        onClick={handleToggleChat}
+>>>>>>> pr/chat-and-local-dev-fix
         aria-label="Open AI Assistant"
         aria-expanded={isOpen}
         animate={{ x: coords.x, y: coords.y }}
