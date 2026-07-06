@@ -1,0 +1,8 @@
+{
+  "name": "TalentHub BD",
+  "description": "Bangladesh's premium talent, event, and opportunity network connecting students, organizers, and divisional hubs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
