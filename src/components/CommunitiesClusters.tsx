@@ -13,6 +13,7 @@ interface Cluster {
   location: string;
 }
 
+<<<<<<< HEAD
 export default function CommunitiesClusters() {
   const [clusters, setClusters] = useState<Cluster[]>([
     {
@@ -74,6 +75,64 @@ export default function CommunitiesClusters() {
     if (joinedClusterIds[id]) return; // already joined
 
     setClusters(prev => 
+=======
+const FALLBACK_CLUSTERS: Cluster[] = [
+  { id: 'c1', name: 'BUET Computer Club', count: 420, focus: 'dhaka engineering portal', tags: ['CS', 'DHAKA'], color: 'rgba(53, 88, 114, 0.95)', scale: 1.1, location: 'Dhaka' },
+  { id: 'c2', name: 'DU IT Society', count: 350, focus: 'Information technology research', tags: ['IT', 'DHAKA'], color: 'rgba(122, 170, 206, 0.95)', scale: 1.2, location: 'Dhaka' },
+  { id: 'c3', name: 'BanglaTech Institute', count: 280, focus: 'Community of builders, researchers, and student innovators', tags: ['AI', 'Web', 'Community'], color: 'rgba(76, 142, 186, 0.95)', scale: 1.0, location: 'Dhaka' },
+  { id: 'c4', name: 'Chittagong Startup Circle', count: 190, focus: 'Early-stage founders and startup mentorship', tags: ['Startups', 'Business', 'Innovation'], color: 'rgba(97, 164, 115, 0.95)', scale: 0.95, location: 'Chittagong' },
+  { id: 'c5', name: 'Sylhet Dev Collective', count: 165, focus: 'Open-source projects and software collaboration', tags: ['Open Source', 'DevOps', 'Cloud'], color: 'rgba(176, 101, 182, 0.95)', scale: 0.98, location: 'Sylhet' }
+];
+
+export default function CommunitiesClusters() {
+  const [clusters, setClusters] = useState<Cluster[]>(FALLBACK_CLUSTERS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeClusterId, setActiveClusterId] = useState<string>(FALLBACK_CLUSTERS[0].id);
+  const [joinedClusterIds, setJoinedClusterIds] = useState<Record<string, boolean>>({});
+
+  React.useEffect(() => {
+    fetch('/api/organizations')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.organizations) {
+          const orgs = data.organizations.filter((o: any) => !o.deactivated).map((o: any) => ({
+            id: o.id,
+            name: o.org_name,
+            count: Math.floor(Math.random() * 500) + 50, // Mock count based on ID or random for variety
+            focus: o.bio || 'Verified Student Organization Node',
+            tags: ['Community', o.location || 'Bangladesh', 'TalentHub'],
+            color: o.id.includes('org_') ? 'rgba(53, 88, 114, 0.95)' : 'rgba(122, 170, 206, 0.95)',
+            scale: 1 + (Math.random() * 0.3),
+            location: o.location || 'Dhaka'
+          }));
+
+          if (orgs.length > 0) {
+            const mergedClusters = [
+              ...FALLBACK_CLUSTERS,
+              ...orgs.filter(org => !FALLBACK_CLUSTERS.some(cluster => cluster.name === org.name))
+            ];
+            setClusters(mergedClusters);
+            setActiveClusterId(mergedClusters[0].id);
+            return;
+          }
+        }
+        // Empty response or unsuccessful shape -> use defaults
+        setClusters(FALLBACK_CLUSTERS);
+        setActiveClusterId(FALLBACK_CLUSTERS[0].id);
+      })
+      .catch(err => {
+        console.warn("Error fetching clusters, using fallback:", err);
+        setClusters(FALLBACK_CLUSTERS);
+        setActiveClusterId(FALLBACK_CLUSTERS[0].id);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleJoinCircle = (id: string) => {
+    if (joinedClusterIds[id]) return; // already joined
+
+    setClusters(prev =>
+>>>>>>> pr/chat-and-local-dev-fix
       prev.map(c => c.id === id ? { ...c, count: c.count + 1 } : c)
     );
 
@@ -83,7 +142,15 @@ export default function CommunitiesClusters() {
     }));
   };
 
+<<<<<<< HEAD
   const selectedCluster = clusters.find(c => c.id === activeClusterId) || clusters[1];
+=======
+  const selectedCluster = clusters.find(c => c.id === activeClusterId) || clusters[0];
+
+  if (!isLoading && !selectedCluster) {
+    return null;
+  }
+>>>>>>> pr/chat-and-local-dev-fix
 
   return (
     <div id="communities" className="my-20">

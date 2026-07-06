@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+=======
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { SendOfferButton } from './SendOfferButton';
+>>>>>>> pr/chat-and-local-dev-fix
 import { 
   Building, 
   MapPin, 
@@ -48,7 +54,11 @@ interface OrganizerDashboardProps {
   onAddEvent: (newEvent: EventHub) => void;
   onDeleteOpportunity: (oppId: string) => void;
   onDeleteEvent: (eventId: string) => void;
+<<<<<<< HEAD
   requestedTab?: 'command' | 'applicants' | 'postings' | 'publish';
+=======
+  requestedTab?: 'command' | 'applicants' | 'postings' | 'publish' | 'brand';
+>>>>>>> pr/chat-and-local-dev-fix
   onOpenNotifications?: () => void;
   unreadCount?: number;
 }
@@ -71,7 +81,11 @@ export default function OrganizerDashboard({
 }: OrganizerDashboardProps) {
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'command' | 'applicants' | 'postings' | 'publish'>('command');
+=======
+  const [activeTab, setActiveTab] = useState<'command' | 'applicants' | 'postings' | 'publish' | 'brand'>('command');
+>>>>>>> pr/chat-and-local-dev-fix
 
   useEffect(() => {
     if (requestedTab) {
@@ -87,6 +101,244 @@ export default function OrganizerDashboard({
   const [totalRegistrations, setTotalRegistrations] = useState<number>(0);
   const [activeAdNode, setActiveAdNode] = useState<number>(0);
 
+<<<<<<< HEAD
+=======
+  // Organization Identity Suite state
+  const [orgId, setOrgId] = useState<string>('');
+  const [orgName, setOrgName] = useState<string>('');
+  const [orgWebsite, setOrgWebsite] = useState<string>('');
+  const [orgLocation, setOrgLocation] = useState<string>('');
+  const [orgBio, setOrgBio] = useState<string>('');
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string>('');
+  const [orgBannerUrl, setOrgBannerUrl] = useState<string>('');
+  const [orgDeactivated, setOrgDeactivated] = useState<boolean>(false);
+
+  // Status/Validation and Feedback UI
+  const [isSavingOrg, setIsSavingOrg] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>('');
+  const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const [orgToast, setOrgToast] = useState<{ message: string; show: boolean } | null>(null);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState<boolean>(false);
+
+  // Crop controls
+  const [logoZoom, setLogoZoom] = useState<number>(1);
+  const [logoCropShape, setLogoCropShape] = useState<'circle' | 'square'>('circle');
+
+  // Premium Preset Assets
+  const LOGO_PRESETS = [
+    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop", // Teal Node
+    "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=150&h=150&fit=crop", // AI Core
+    "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=150&h=150&fit=crop", // Executive Slate
+    "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&h=150&fit=crop", // Modern Office Icon
+  ];
+
+  const BANNER_PRESETS = [
+    "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=300&fit=crop", // Workspace
+    "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&h=300&fit=crop", // Vector Cyber Space
+    "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&h=300&fit=crop", // Abstract Tech Node
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=300&fit=crop", // Cosmic Network
+  ];
+
+  // Load organization details from API on mount
+  useEffect(() => {
+    if (user && user.id) {
+      fetch(`/api/organizations?owner_id=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success && data.organization) {
+            const org = data.organization;
+            setOrgId(org.id);
+            setOrgName(org.org_name);
+            setOppOrg(org.org_name);
+            setEventOrganizer(org.org_name);
+            setOrgWebsite(org.website_url);
+            setOrgLocation(org.location);
+            setOrgBio(org.bio);
+            setOrgLogoUrl(org.logo_url);
+            setOrgBannerUrl(org.banner_url);
+            setOrgDeactivated(org.deactivated);
+          } else {
+            // Unsaved brand state - prefill defaults using user metadata
+            const defaultName = user.name + ' Foundation';
+            setOrgName(defaultName);
+            setOppOrg(defaultName);
+            setEventOrganizer(defaultName);
+            setOrgLocation(user.division + ', Bangladesh');
+            setOrgWebsite('https://' + user.name.toLowerCase().replace(/\s/g, '') + '.org');
+            setOrgBio('Advancing technology networks and fostering exceptional young developer talent across regional clusters.');
+            setOrgLogoUrl('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop');
+            setOrgBannerUrl('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=300&fit=crop');
+          }
+        })
+        .catch(err => {
+          console.warn("Error fetching organization profile:", err);
+        });
+    }
+  }, [user]);
+
+  const saveOrganizationToSupabase = async (payload: any) => {
+    try {
+      const { getSupabaseClient } = await import('../lib/supabase');
+      const supabase = getSupabaseClient() as any;
+      if (supabase) {
+        console.log("Supabase Connection Live - Syncing Organization state...");
+        const { error } = await supabase
+          .from('organizations')
+          .upsert({
+            id: payload.id,
+            owner_id: payload.owner_id,
+            org_name: payload.org_name,
+            bio: payload.bio,
+            location: payload.location,
+            logo_url: payload.logo_url,
+            banner_url: payload.banner_url,
+            website_url: payload.website_url,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'owner_id' });
+        
+        if (error) {
+          console.error("Supabase organization synchronization failed: ", error);
+        } else {
+          console.log("Supabase synchronization completed successfully.");
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase database dynamic sync offline:", err);
+    }
+  };
+
+  const validateWebsiteUrl = (url: string) => {
+    if (!url) return true;
+    try {
+      new URL(url);
+      return true;
+    } catch (_) {
+      const regex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\/?/;
+      return regex.test(url);
+    }
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setValidationError(`Failed: File exceeds maximum size limits (Max: 2MB). Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+      setValidationError('Failed: Unsupported image format. Only JPEG and PNG images are permitted.');
+      return;
+    }
+
+    setValidationError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        if (type === 'logo') {
+          setOrgLogoUrl(event.target.result as string);
+        } else {
+          setOrgBannerUrl(event.target.result as string);
+        }
+        setOrgToast({ message: `Successfully loaded new ${type} asset!`, show: true });
+        setTimeout(() => setOrgToast(null), 3500);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveOrganizationBrand = async () => {
+    if (!orgName.trim()) {
+      setValidationError('Profile Validation Failed: An organization or club name is required.');
+      return;
+    }
+
+    if (orgWebsite && !validateWebsiteUrl(orgWebsite)) {
+      setValidationError('Profile Validation Failed: The website URL format is invalid. Ensure it begins with http/https or is a valid domain.');
+      return;
+    }
+
+    if (orgBio.length > 250) {
+      setValidationError(`Profile Validation Failed: Bio is ${orgBio.length} characters long. Character limit is 250.`);
+      return;
+    }
+
+    setValidationError('');
+    setIsSavingOrg(true);
+
+    const payload = {
+      id: orgId || 'org-' + Math.random().toString(36).substring(4),
+      owner_id: user.id,
+      org_name: orgName,
+      bio: orgBio,
+      location: orgLocation,
+      logo_url: orgLogoUrl,
+      banner_url: orgBannerUrl,
+      website_url: orgWebsite
+    };
+
+    setOrgToast({ message: `Successfully saved organization changes! Your profile node is active.`, show: true });
+    setOrgDeactivated(false);
+    setOppOrg(orgName);
+    setEventOrganizer(orgName);
+    setTimeout(() => {
+      setOrgToast(prev => prev ? { ...prev, show: false } : null);
+    }, 4500);
+
+    try {
+      const response = await fetch('/api/organizations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': user.id
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const resData = await response.json();
+      if (resData && resData.success) {
+        if (resData.organization) {
+          setOrgId(resData.organization.id);
+        }
+        await saveOrganizationToSupabase(payload);
+      } else {
+        setValidationError(resData.error || 'Failed to securely sync identity to the database.');
+      }
+    } catch (err: any) {
+      console.warn("Offline fallback sync active. Storing registry details locally:", err);
+    } finally {
+      setIsSavingOrg(false);
+    }
+  };
+
+  const handleDeactivateOrganizationConfirmed = async () => {
+    setShowDeactivateDialog(false);
+    try {
+      const response = await fetch('/api/organizations/deactivate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': user.id
+        },
+        body: JSON.stringify({ owner_id: user.id })
+      });
+      const data = await response.json();
+      if (data && data.success) {
+        setOrgDeactivated(true);
+        setOrgToast({ message: "Organization public-facing directory deactivated successfully.", show: true });
+        setTimeout(() => setOrgToast(null), 3500);
+      } else {
+        setValidationError(data.error || 'Security error: Failed to deactivate page elements.');
+      }
+    } catch (err) {
+      console.warn("Database offline. Acting on optimistic deactivation cascade...", err);
+      setOrgDeactivated(true);
+    }
+  };
+
+>>>>>>> pr/chat-and-local-dev-fix
   // Form states - Opportunity Posting
   const [oppTitle, setOppTitle] = useState<string>('');
   const [oppOrg, setOppOrg] = useState<string>('');
@@ -360,6 +612,22 @@ export default function OrganizerDashboard({
               <Plus className="w-4 h-4 shrink-0" />
               {isSidebarExpanded && <span>[ Quick Publish ]</span>}
             </button>
+<<<<<<< HEAD
+=======
+
+            <button
+              onClick={() => setActiveTab('brand')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium transition-all ${
+                activeTab === 'brand' 
+                  ? 'bg-orange-700 text-white shadow-sm' 
+                  : 'hover:bg-slate-900 hover:text-slate-200'
+              }`}
+              id="org-nav-brand-btn"
+            >
+              <Building className="w-4 h-4 shrink-0" />
+              {isSidebarExpanded && <span>[ Brand Identity ]</span>}
+            </button>
+>>>>>>> pr/chat-and-local-dev-fix
           </nav>
         </div>
 
@@ -477,6 +745,7 @@ export default function OrganizerDashboard({
 
                 {/* Highly aesthetic analytical SVG visualizer */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<<<<<<< HEAD
                   
                   {/* Custom Trend Graph */}
                   <div className="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-3xl text-left relative overflow-hidden shadow-sm">
@@ -527,6 +796,26 @@ export default function OrganizerDashboard({
 
                     {/* Chart Labels bar */}
                     <div className="flex justify-between items-center text-[9px] font-mono text-slate-400 border-t border-slate-100 pt-4 mt-2">
+=======
+
+                  {/* Custom Trend Graph */}
+                  <div className="lg:col-span-8 bg-white border border-slate-200 p-4 sm:p-6 rounded-3xl text-left relative overflow-hidden shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                      <div className="space-y-0.5 min-w-0">
+                        <span className="block text-[9px] font-mono text-[#7AAACE] uppercase tracking-wider font-bold">// SYSTEM METRIC DYNAMICS</span>
+                        <h3 className="font-display font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
+                          <TrendingUp className="w-4 h-4 text-orange-600 shrink-0" /> Platform Registrations & Engagement Curve
+                        </h3>
+                      </div>
+                      <span className="self-start sm:self-auto text-[10px] font-mono text-slate-400 bg-slate-50 border px-2.5 py-1 rounded-lg whitespace-nowrap">LAST 7 CYCLES</span>
+                    </div>
+
+                    {/* Responsive SVG Curve Chart — auto-resizes via ResizeObserver */}
+                    <ResponsiveTrendChart />
+
+                    {/* Chart Labels bar */}
+                    <div className="grid grid-cols-7 items-center text-[9px] sm:text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-4 mt-2 gap-1 text-center">
+>>>>>>> pr/chat-and-local-dev-fix
                       <span>MON 05</span>
                       <span>TUE 06</span>
                       <span>WED 07</span>
@@ -696,6 +985,7 @@ export default function OrganizerDashboard({
                               >
                                 [ Schedule Call ]
                               </button>
+<<<<<<< HEAD
                               <button 
                                 onClick={() => {
                                   onChangeApplicationStatus(app.id, 'Offer Received');
@@ -705,6 +995,17 @@ export default function OrganizerDashboard({
                               >
                                 [ Send Offer ]
                               </button>
+=======
+                              <SendOfferButton
+                                registrationId={app.id}
+                                onSuccess={(id) => {
+                                  onChangeApplicationStatus(id, 'Offer Received');
+                                }}
+                                onError={(err) => {
+                                  console.error('SendOfferButton failed:', err);
+                                }}
+                              />
+>>>>>>> pr/chat-and-local-dev-fix
                             </div>
                           </div>
                         </div>
@@ -1052,6 +1353,561 @@ export default function OrganizerDashboard({
                 </div>
               </motion.div>
             )}
+<<<<<<< HEAD
+=======
+
+            {activeTab === 'brand' && (
+              <motion.div
+                key="brand_identity_suite"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-8"
+              >
+                {/* Dashboard Toast Alert Portal for Org Brand updates */}
+                <AnimatePresence>
+                  {orgToast && orgToast.show && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                      className="fixed bottom-8 right-8 z-[100] bg-slate-900 border border-slate-800 text-[#F7F8F0] px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-sans max-w-sm select-none"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 shrink-0">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-mono text-orange-400 font-bold block tracking-wider uppercase">[ BRAND_SYNCED ]</span>
+                        <p className="text-xs font-light text-slate-100 leading-snug">{orgToast.message}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Sub-header Banner */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-2 border-b border-slate-200 gap-4">
+                  <div>
+                    <span className="text-xs font-mono tracking-widest text-orange-700 uppercase font-semibold">[ BRAND GATEWAY SYSTEM ]</span>
+                    <h2 className="font-display text-2xl font-black text-slate-800">Organization Identity Suite</h2>
+                    <p className="text-xs text-slate-500 font-light mt-0.5 font-sans">Maintain professional presence, design credentials, and manage community portals.</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Public profile button */}
+                    <button
+                      onClick={() => setPreviewMode(previewMode === 'edit' ? 'preview' : 'edit')}
+                      className="px-4.5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-mono font-bold text-xs hover:border-slate-800 hover:text-slate-900 transition-colors flex items-center gap-2 bg-white"
+                      id="toggle-preview-mode-btn"
+                    >
+                      {previewMode === 'edit' ? (
+                        <>
+                          <Eye className="w-4 h-4 text-orange-700" /> [ View Public Presets ]
+                        </>
+                      ) : (
+                        <>
+                          <Sliders className="w-4 h-4 text-slate-500" /> [ Back to Config ]
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {orgDeactivated && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex gap-3 items-center">
+                    <span className="relative flex h-3 w-3 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                    </span>
+                    <div className="text-xs font-sans">
+                      <span className="font-bold">Notice:</span> This node's public-facing directory portal is deactivated. Students will not see your registry block until you press update and save changes again.
+                    </div>
+                  </div>
+                )}
+
+                {/* Main Split Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left items-start">
+                  
+                  {/* CONFIG FORM: LEFT 7 COLS (or Full if previewOnly) */}
+                  <div className={`space-y-6 ${previewMode === 'preview' ? 'hidden' : 'lg:col-span-7'}`}>
+                    
+                    {/* Identity Branding Section */}
+                    <div className="bg-white border rounded-3xl p-6 border-slate-205 shadow-sm space-y-4">
+                      <h3 className="font-display font-extrabold text-xs text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+                        <ShieldCheck className="w-4.5 h-4.5 text-orange-700" /> Core BRANDING parameters
+                      </h3>
+
+                      {validationError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-mono">
+                          {validationError}
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-mono font-bold text-slate-400">ORGANIZATION / CLUB NAME *</label>
+                          <input 
+                            type="text" 
+                            value={orgName} 
+                            onChange={(e) => {
+                              if(e.target.value.length <= 80) setOrgName(e.target.value);
+                            }}
+                            placeholder="e.g. BUET Computer Club"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-orange-600 focus:outline-none font-sans"
+                            required
+                            id="field-org-name"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-mono font-bold text-slate-400">OFFICIAL WEBSITE URL</label>
+                            <input 
+                              type="text" 
+                              value={orgWebsite} 
+                              onChange={(e) => setOrgWebsite(e.target.value)}
+                              placeholder="e.g. https://buetcomputerclub.org"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-orange-600 focus:outline-none font-sans"
+                              id="field-org-website"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-mono font-bold text-slate-400">PHYSICAL LOCATION</label>
+                            <input 
+                              type="text" 
+                              value={orgLocation} 
+                              onChange={(e) => setOrgLocation(e.target.value)}
+                              placeholder="e.g. Dhaka, Bangladesh"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-orange-600 focus:outline-none font-sans"
+                              id="field-org-location"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[9px] font-mono font-bold text-slate-400">BIO & MISSION STATEMENT (character limit 250)</label>
+                            <span className={`text-[9px] font-mono font-bold ${orgBio.length > 250 ? 'text-red-500' : 'text-slate-400'}`}>
+                              {orgBio.length}/250
+                            </span>
+                          </div>
+                          <textarea 
+                            rows={3}
+                            value={orgBio} 
+                            onChange={(e) => {
+                              if (e.target.value.length <= 300) {
+                                setOrgBio(e.target.value);
+                              }
+                            }}
+                            placeholder="Present your organization mission, priorities and regional developer hub engagements..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-orange-600 focus:outline-none resize-none font-sans"
+                            id="field-org-bio"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TWO-TIER MEDIA ASSETS */}
+                    <div className="bg-white border rounded-3xl p-6 border-slate-205 shadow-sm space-y-6">
+                      <h3 className="font-display font-extrabold text-xs text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+                        <Activity className="w-4.5 h-4.5 text-orange-700" /> Media Asset Management
+                      </h3>
+
+                      {/* Tier 1: Cover Banner */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono font-bold text-slate-600 uppercase block">[ 1. COVER BANNER ]</span>
+                          <span className="text-[9px] font-mono text-slate-400">Recommended: 800×300 (Max 2MB)</span>
+                        </div>
+
+                        {/* Interactive Drag & Drop Box */}
+                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:bg-slate-50/50 transition-colors relative group">
+                          <input 
+                            type="file" 
+                            accept="image/png, image/jpeg, image/jpg"
+                            onChange={(e) => handleImageFileChange(e, 'banner')}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            id="input-org-banner"
+                          />
+                          <div className="space-y-2 pointer-events-none">
+                            <span className="px-3 py-1 bg-orange-50 text-orange-850 font-mono text-[9px] rounded-lg font-bold inline-block">
+                              Choose high-res banner block
+                            </span>
+                            <p className="text-[10px] text-slate-400 font-light font-sans">Drag banner here or click to upload (PNG/JPEG under 2MB)</p>
+                          </div>
+                        </div>
+
+                        {/* Quick preset banners */}
+                        <div className="space-y-2">
+                          <p className="text-[9px] font-mono font-black text-slate-400 uppercase">[ Preset Banners ]</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {BANNER_PRESETS.map((bp, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => setOrgBannerUrl(bp)}
+                                className={`h-11 rounded-lg border-2 overflow-hidden transition-all ${orgBannerUrl === bp ? 'border-orange-600 scale-95 shadow-sm' : 'border-slate-200 hover:border-slate-800'}`}
+                              >
+                                <img src={bp} alt="Banner preset" className="w-full h-full object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Tier 2: Profile Logo Avatar with visual crop shapes */}
+                      <div className="space-y-3 pt-4 border-t border-slate-100">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono font-bold text-slate-600 uppercase block">[ 2. PROFILE AVATAR & CROP ]</span>
+                          <span className="text-[9px] font-mono text-slate-400">Ratio: 1:1 Square (Max 2MB)</span>
+                        </div>
+
+                        {/* Interactive upload drag drop */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                          <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:bg-slate-50/50 transition-colors relative">
+                            <input 
+                              type="file" 
+                              accept="image/png, image/jpeg, image/jpg"
+                              onChange={(e) => handleImageFileChange(e, 'logo')}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              id="input-org-logo"
+                            />
+                            <div className="space-y-2 pointer-events-none">
+                              <span className="px-3 py-1 bg-orange-50 text-orange-850 font-mono text-[9px] rounded-lg font-bold inline-block">
+                                Choose logo image
+                              </span>
+                              <p className="text-[10px] text-slate-400 font-sans">Click to import logo file</p>
+                            </div>
+                          </div>
+
+                          {/* Quick preset logos */}
+                          <div className="space-y-1.5 text-left">
+                            <p className="text-[9px] font-mono font-black text-slate-400 uppercase">[ Preset Logos ]</p>
+                            <div className="flex gap-2">
+                              {LOGO_PRESETS.map((lp, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => setOrgLogoUrl(lp)}
+                                  className={`w-10 h-10 rounded-lg border-2 overflow-hidden transition-all ${orgLogoUrl === lp ? 'border-orange-600 scale-95' : 'border-slate-200 hover:border-slate-700'}`}
+                                >
+                                  <img src={lp} alt="Logo preset" className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CROP AND ALIGNMENT CONTROL SHEETS */}
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 mt-3">
+                          <span className="text-[9px] font-mono font-bold text-slate-700 block uppercase">[ Crop Configuration Tool ]</span>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Shape Selector */}
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-mono font-bold text-slate-400 block">CROP FOCUS MASK</label>
+                              <div className="flex gap-1.5 bg-white p-1 rounded-xl border">
+                                <button
+                                  type="button"
+                                  onClick={() => setLogoCropShape('circle')}
+                                  className={`flex-1 py-1 rounded-lg text-[10px] font-mono font-bold ${logoCropShape === 'circle' ? 'bg-orange-700 text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                  Circle
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setLogoCropShape('square')}
+                                  className={`flex-1 py-1 rounded-lg text-[10px] font-mono font-bold ${logoCropShape === 'square' ? 'bg-orange-700 text-white' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                  Square
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Scale zoom */}
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-mono font-bold text-slate-400 block">ZOOM ALIGNMENT: {logoZoom.toFixed(1)}x</label>
+                              <div className="flex items-center gap-2 pt-1 pb-1">
+                                <span className="text-[9px] font-mono text-slate-400">-</span>
+                                <input 
+                                  type="range"
+                                  min="0.8"
+                                  max="2.5"
+                                  step="0.1"
+                                  value={logoZoom}
+                                  onChange={(e) => setLogoZoom(parseFloat(e.target.value))}
+                                  className="w-full accent-orange-700 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <span className="text-[9px] font-mono text-slate-400">+</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ACTIONS CONTROLS & DANGER ZONE */}
+                    <div className="space-y-6">
+                      <div className="bg-white border rounded-3xl p-5 border-slate-205 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <div className="text-left">
+                          <span className="text-[9px] font-mono text-slate-400 uppercase font-black block">[ REVISION CONTROLLER ]</span>
+                          <p className="text-xs font-light text-slate-500 font-sans">Perform an optimistic write to layout nodes, secure database elements.</p>
+                        </div>
+
+                        <div className="flex gap-3 w-full sm:w-auto">
+                          <button
+                            onClick={handleSaveOrganizationBrand}
+                            disabled={isSavingOrg}
+                            className="flex-1 sm:flex-none py-3 px-6 bg-orange-700 hover:bg-orange-850 text-white font-mono text-xs font-bold rounded-xl shadow-[3px_3px_0px_0px_rgba(158,88,56,0.2)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            id="btn-org-brand-save"
+                          >
+                            {isSavingOrg ? (
+                              <>
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Synchronizing...
+                              </>
+                            ) : (
+                              <>
+                                [ Save Identity Changes ]
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* DANGER ZONE AT BOTTOM */}
+                      <div className="bg-red-50/40 border-2 border-red-200/50 rounded-3xl p-6 text-left space-y-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-red-100 rounded-xl text-red-700 shrink-0">
+                            <Trash2 className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-mono font-bold text-red-800 uppercase">[ Security System Danger Zone ]</h4>
+                            <p className="text-xs font-light text-slate-600 mt-0.5 font-sans">
+                              Actions performed here bypass standard node filters. Double-verify authentication keys before taking critical steps.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-red-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-0.5 text-left">
+                            <span className="text-xs font-bold text-slate-800 block">Deactivate Public Organization Page</span>
+                            <span className="block text-[10px] text-slate-500 font-light font-sans">
+                              Temporarily unpublishes your organization profile and archives active opportunity card slates.
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => setShowDeactivateDialog(true)}
+                            className="bg-red-600 text-white font-mono text-[10px] font-black px-4 py-2.5 rounded-xl hover:bg-red-700 shadow-sm transition-all text-nowrap align-self-start cursor-pointer border border-transparent"
+                            id="btn-org-brand-deactivate"
+                          >
+                            [ Deactivate Organization Page ]
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LIVE PREVIEW: RIGHT 5 COLS (or Full if previewMode === 'preview') */}
+                  <div className={`space-y-6 ${previewMode === 'preview' ? 'lg:col-span-12 max-w-3xl mx-auto w-full' : 'lg:col-span-5'}`}>
+                    <div className="sticky top-24 space-y-4 text-left">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-mono tracking-widest text-[#7AAACE] uppercase font-bold">[ INSTANT LIVE PREVIEW ]</span>
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-850 text-[10px] font-mono rounded font-black uppercase tracking-wide">
+                          Real-time stream active
+                        </span>
+                      </div>
+
+                      {/* Actual Mock Public Directory Layout */}
+                      <div className="bg-slate-100 border-2 border-slate-200/80 rounded-3xl overflow-hidden shadow-xl transition-all">
+                        {/* Cover Image banner */}
+                        <div className="h-32 sm:h-40 relative bg-slate-200">
+                          {orgBannerUrl ? (
+                            <img src={orgBannerUrl} alt="Cover Banner" className="w-full h-full object-cover animate-fade-in" />
+                          ) : (
+                            <div className="w-full h-full bg-slate-300 animate-pulse flex items-center justify-center text-slate-400 text-xs font-sans">
+                              No Cover Banner Image Loaded
+                            </div>
+                          )}
+
+                          {/* Location Badge */}
+                          <div className="absolute top-3 right-3 bg-slate-100/90 backdrop-blur-md text-slate-800 px-2.5 py-1 rounded-xl text-[9px] font-mono font-bold uppercase tracking-wider border border-slate-250">
+                            {orgLocation ? orgLocation : 'Location Node unspecified'}
+                          </div>
+                        </div>
+
+                        {/* Logo floating container */}
+                        <div className="px-6 pb-6 relative">
+                          <div className="flex justify-between items-end -translate-y-8 h-10 mb-2">
+                            <div className="relative">
+                              {orgLogoUrl ? (
+                                <div 
+                                  className={`w-20 h-20 bg-white border-4 border-slate-100 shadow-md flex items-center justify-center overflow-hidden transition-all ${logoCropShape === 'circle' ? 'rounded-full' : 'rounded-2xl'}`}
+                                >
+                                  <img 
+                                    src={orgLogoUrl} 
+                                    alt="Logo Avatar" 
+                                    className="object-cover"
+                                    style={{
+                                      transform: `scale(${logoZoom})`,
+                                      width: '100%',
+                                      height: '100%'
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-20 h-20 bg-slate-300 rounded-full border-4 border-slate-150 flex items-center justify-center text-slate-500 font-mono text-[9px] uppercase">
+                                  No Logo
+                                </div>
+                              )}
+                            </div>
+
+                            {orgWebsite && validateWebsiteUrl(orgWebsite) && (
+                              <button 
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-700 text-white rounded-lg text-[9px] font-mono font-bold transition-all animate-none"
+                              >
+                                Website <ExternalLink className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Organization details */}
+                          <div className="space-y-3 -translate-y-4">
+                            <div>
+                              <span className="text-[9px] font-mono text-emerald-600 block font-bold tracking-wider uppercase">[ VERIFIED IDENTITY SLATE ]</span>
+                              <h3 className="font-display font-black text-lg text-slate-800 tracking-tight">
+                                {orgName ? orgName : 'Untitled Organization'}
+                              </h3>
+                              {orgWebsite && (
+                                <span className={`text-[10px] font-mono ${validateWebsiteUrl(orgWebsite) ? 'text-slate-400' : 'text-red-500 font-bold'}`}>
+                                  {orgWebsite} {!validateWebsiteUrl(orgWebsite) && ' (Invalid URL Format)'}
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-slate-600 font-light leading-relaxed whitespace-pre-line bg-white/70 backdrop-blur border p-4.5 rounded-2xl block min-h-20 text-left font-sans">
+                              {orgBio ? orgBio : 'No organization biography or mission statement has been added yet. Use the Identity Suite forms to tell students what you build.'}
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-2 pt-1 justify-start">
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#355872]/8 text-[#355872] rounded">
+                                Active Node: {user.division} Cluster
+                              </span>
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-orange-100 text-orange-800 rounded">
+                                Curator: {user.name}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Growth Feed Simulation Item */}
+                      <div className="bg-[#FAFBF7] border border-slate-200 rounded-3xl p-5 text-left space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-bold">[ Growth Feed Simulator ]</span>
+                          <span className="text-[9px] font-mono text-emerald-600 font-bold uppercase">● LIVE STREAM</span>
+                        </div>
+                        
+                        <div className="bg-white border rounded-2xl p-4 shadow-sm space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                              {orgLogoUrl ? (
+                                <img src={orgLogoUrl} alt="Logo" className="w-full h-full object-cover" />
+                              ) : (
+                                <Building className="w-5 h-5 text-slate-400" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{orgName || 'Untitled Organization'}</h4>
+                              <p className="text-[10px] text-slate-400 font-mono">Posted a new Opportunity • Just now</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-[10px] font-bold text-slate-700">Engineering Internship Node</span>
+                              <span className="text-[9px] font-mono text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">STIPEND: ৳15,000</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500 font-light line-clamp-2">
+                              Join {orgName || 'Your Org'} to build high-performance data grids and synergetic network solutions in {orgLocation || 'Bangladesh'}...
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Auxiliary view public button */}
+                      <div className="bg-[#FAFBF7] border border-slate-200 rounded-3xl p-5 text-center space-y-2">
+                        <p className="text-[9px] font-mono text-slate-500 font-bold uppercase">[ POST-UPDATE DIRECTORY ACTION ]</p>
+                        <button
+                          onClick={() => {
+                            if (!orgName) {
+                              setValidationError('Please specify a valid organization name before running verification checks.');
+                              return;
+                            }
+                            setPreviewMode('preview');
+                            setOrgToast({ message: "Loaded full-screen public profile template simulation!", show: true });
+                            setTimeout(() => setOrgToast(null), 3500);
+                          }}
+                          className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs font-bold rounded-xl transition-all cursor-pointer"
+                        >
+                          [ Run Verify Public Profile Preview ]
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* DEACTIVATION TRIGGER DIALOG BOX */}
+                <AnimatePresence>
+                  {showDeactivateDialog && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowDeactivateDialog(false)}
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white rounded-3xl border p-6 shadow-2xl w-full max-w-md relative z-10 text-slate-800 space-y-4 text-left"
+                      >
+                        <h4 className="font-display font-black text-lg text-red-700 flex items-center gap-2">
+                          ⚠️ [ CONFIRM DEACTIVATION ]
+                        </h4>
+                        
+                        <p className="text-xs text-slate-500 font-light leading-relaxed font-sans">
+                          You are about to deactivate the public listing for <strong className="font-bold text-slate-800">"{orgName || 'your organization'}"</strong>. 
+                          This action will withdraw your bio, banner indices, and website links from the public student talent pools and searches.
+                        </p>
+
+                        <div className="bg-amber-50 rounded-xl p-3 border text-[11px] text-amber-900 leading-normal font-sans">
+                          <strong>Note:</strong> Active jobs and academy registration slates remains archived. You can reactivate public directories at any point by configuring and updating your identity suite again.
+                        </div>
+
+                        <div className="flex gap-3 justify-end pt-2">
+                          <button
+                            onClick={() => setShowDeactivateDialog(false)}
+                            className="px-4 py-2 border rounded-xl text-xs font-mono font-bold hover:bg-slate-50 cursor-pointer"
+                          >
+                            [ Cancel ]
+                          </button>
+                          <button
+                            onClick={handleDeactivateOrganizationConfirmed}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-mono font-bold cursor-pointer"
+                          >
+                            [ Yes, Deactivate Page ]
+                          </button>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+>>>>>>> pr/chat-and-local-dev-fix
           </AnimatePresence>
         </main>
 
@@ -1394,3 +2250,355 @@ export default function OrganizerDashboard({
     </div>
   );
 }
+<<<<<<< HEAD
+=======
+
+// --- Responsive Trend Chart -----------------------------------------------------
+// Self-contained chart that measures its container with ResizeObserver so it
+// always fills its parent (mobile → tiny column, desktop → wide row) and
+// re-renders whenever the window or layout changes. Includes smooth hover
+// tooltips that dim non-active elements and emphasize the active data point.
+type TrendPoint = {
+  x: number;
+  y: number;
+  label: string;
+  registrations: number;
+  engagement: number;
+  highlight?: boolean;
+};
+
+function ResponsiveTrendChart() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState<{ w: number; h: number }>({ w: 500, h: 176 });
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [focused, setFocused] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const apply = () => {
+      const rect = el.getBoundingClientRect();
+      // Use the rendered CSS size. viewBox maps it to a 500x150 coordinate space.
+      setSize({
+        w: Math.max(120, Math.round(rect.width)),
+        h: Math.max(80, Math.round(rect.height)),
+      });
+    };
+
+    apply();
+
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener('resize', apply);
+    window.addEventListener('orientationchange', apply);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', apply);
+      window.removeEventListener('orientationchange', apply);
+    };
+  }, []);
+
+  // Stable design coordinates — independent of actual pixel size.
+  const VB_W = 500;
+  const VB_H = 150;
+
+  // 7 data points evenly distributed across the viewBox width.
+  const points: TrendPoint[] = [
+    { x: 0,   y: 130, label: 'MON 05', registrations: 124, engagement: 38 },
+    { x: 83,  y: 118, label: 'TUE 06', registrations: 168, engagement: 46 },
+    { x: 166, y: 95,  label: 'WED 07', registrations: 214, engagement: 61 },
+    { x: 250, y: 78,  label: 'THU 08', registrations: 286, engagement: 79 },
+    { x: 333, y: 55,  label: 'FRI 09', registrations: 372, engagement: 94 },
+    { x: 416, y: 35,  label: 'SAT 10', registrations: 451, engagement: 118 },
+    { x: 500, y: 18,  label: 'TODAY',  registrations: 528, engagement: 142, highlight: true },
+  ];
+
+  // Build a smooth path that flows through every data point.
+  const linePath = points
+    .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+    .join(' ');
+
+  const areaPath = `${linePath} L ${VB_W} ${VB_H} L 0 ${VB_H} Z`;
+
+  // Horizontal grid lines.
+  const gridLines = [30, 75, 120];
+
+  // Active index (hovered takes priority, then focused for keyboard nav).
+  const activeIdx = hovered ?? focused;
+  const hasActive = activeIdx !== null;
+
+  // Convert a viewBox X coordinate to a pixel offset within the container,
+  // accounting for preserveAspectRatio="none" stretching uniformly to fill.
+  const xToPx = (vbX: number) => (vbX / VB_W) * size.w;
+  const yToPx = (vbY: number) => (vbY / VB_H) * size.h;
+
+  // Compute the trend delta vs the previous day for the active point.
+  const activePoint = activeIdx !== null ? points[activeIdx] : null;
+  const prevPoint = activeIdx !== null && activeIdx > 0 ? points[activeIdx - 1] : null;
+  const deltaReg = activePoint && prevPoint ? activePoint.registrations - prevPoint.registrations : 0;
+  const deltaEng = activePoint && prevPoint ? activePoint.engagement - prevPoint.engagement : 0;
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-44 sm:h-52 md:h-56 overflow-visible"
+      style={{ minHeight: 160 }}
+      data-size={`${size.w}x${size.h}`}
+      data-active={activeIdx !== null ? points[activeIdx].label : 'none'}
+      onMouseLeave={() => setHovered(null)}
+    >
+      <svg
+        className="block w-full h-full"
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Platform registrations and engagement curve over the last 7 days"
+      >
+        <defs>
+          <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#9E5838" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#9E5838" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="curveGradientActive" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#9E5838" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#9E5838" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Group wrapper for non-active elements so we can dim them in one place */}
+        <g
+          style={{
+            transition: 'opacity 220ms ease-out',
+            opacity: hasActive ? 0.28 : 1,
+          }}
+        >
+          {/* Horizontal grid */}
+          {gridLines.map((y) => (
+            <line
+              key={`g-${y}`}
+              x1="0"
+              y1={y}
+              x2={VB_W}
+              y2={y}
+              stroke="#f1f5f9"
+              strokeWidth="1"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+
+          {/* Vertical guides under each data point (non-active) */}
+          {points.map((p) => (
+            <line
+              key={`v-${p.x}`}
+              x1={p.x}
+              y1={0}
+              x2={p.x}
+              y2={VB_H}
+              stroke="#f1f5f9"
+              strokeWidth="1"
+              strokeDasharray="2 3"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+
+          {/* Filled area */}
+          <path d={areaPath} fill="url(#curveGradient)" />
+        </g>
+
+        {/* Active vertical guide — pops in only when a point is hovered */}
+        {hasActive && (
+          <line
+            x1={points[activeIdx!].x}
+            y1={0}
+            x2={points[activeIdx!].x}
+            y2={VB_H}
+            stroke="#9E5838"
+            strokeWidth="1"
+            strokeDasharray="3 3"
+            opacity="0.45"
+            style={{ transition: 'opacity 180ms ease-out' }}
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+
+        {/* Active area — slightly more saturated on hover */}
+        <path
+          d={areaPath}
+          fill="url(#curveGradientActive)"
+          style={{
+            transition: 'opacity 220ms ease-out',
+            opacity: hasActive ? 1 : 0,
+          }}
+        />
+
+        {/* Trend line — stays full opacity, the "spotlight" comes from the dots */}
+        <path
+          d={linePath}
+          fill="none"
+          stroke="#9E5838"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transition: 'opacity 220ms ease-out, stroke-width 220ms ease-out',
+            opacity: hasActive ? 0.4 : 1,
+            strokeWidth: hasActive ? 3 : 2.5,
+          }}
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* Invisible hit-target overlay — wide rectangles so the gap between
+            data points is also hoverable, giving a smooth cross-fade. */}
+        {points.map((p, i) => {
+          // Each cell extends halfway to the next point on each side.
+          const left = i === 0 ? p.x : (p.x + points[i - 1].x) / 2;
+          const right = i === points.length - 1 ? p.x : (p.x + points[i + 1].x) / 2;
+          return (
+            <rect
+              key={`hit-${i}`}
+              x={left}
+              y={0}
+              width={right - left}
+              height={VB_H}
+              fill="transparent"
+              onMouseEnter={() => setHovered(i)}
+              onFocus={() => setFocused(i)}
+              onBlur={() => setFocused(null)}
+              tabIndex={0}
+              role="button"
+              aria-label={`${p.label}: ${p.registrations} registrations, ${p.engagement} engagement`}
+            />
+          );
+        })}
+
+        {/* Data marker dots — only the active one is fully opaque. */}
+        {points.map((p, i) => {
+          const isActive = i === activeIdx;
+          const isHighlight = p.highlight;
+          return (
+            <g
+              key={`pt-${p.x}`}
+              style={{
+                transition: 'opacity 220ms ease-out, transform 220ms ease-out',
+                opacity: hasActive ? (isActive ? 1 : 0.35) : 1,
+                transformOrigin: `${p.x}px ${p.y}px`,
+                transform: isActive ? 'scale(1.25)' : 'scale(1)',
+              }}
+            >
+              {/* Outer halo on active point only */}
+              {isActive && (
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={11}
+                  fill="#bc6c25"
+                  fillOpacity="0.18"
+                  style={{ transition: 'opacity 180ms ease-out' }}
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+              {/* Permanent highlight ring on TODAY */}
+              {isHighlight && !isActive && (
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={9}
+                  fill="#bc6c25"
+                  fillOpacity="0.18"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={isActive ? 5.5 : isHighlight ? 5 : 4}
+                fill={isActive ? '#bc6c25' : '#9E5838'}
+                stroke="white"
+                strokeWidth={isActive ? 2.5 : isHighlight ? 2 : 1.5}
+                vectorEffect="non-scaling-stroke"
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* Tooltip — HTML overlay positioned in pixel space for crisp text.
+          Anchored to the active point, flipped at the edges so it never clips. */}
+      {activePoint && (
+        <div
+          className="pointer-events-none absolute z-20"
+          style={{
+            left: xToPx(activePoint.x),
+            top: Math.max(0, yToPx(activePoint.y) - 12),
+            transform: 'translate(-50%, -100%)',
+            transition: 'left 180ms ease-out, top 180ms ease-out, opacity 180ms ease-out',
+          }}
+        >
+          <div
+            className="relative bg-white border border-slate-200 rounded-xl shadow-[0_8px_24px_rgba(15,23,42,0.12)] px-3 py-2.5 min-w-[160px] sm:min-w-[180px]"
+            style={{
+              // Counter the parent dimming by ensuring the tooltip is always bright.
+              opacity: 1,
+            }}
+          >
+            {/* Tooltip arrow */}
+            <span
+              className="absolute left-1/2 -bottom-1.5 w-3 h-3 bg-white border-r border-b border-slate-200"
+              style={{ transform: 'translateX(-50%) rotate(45deg)' }}
+            />
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="text-[10px] font-mono font-semibold tracking-widest text-slate-500 uppercase">
+                {activePoint.label}
+              </span>
+              {activePoint.highlight && (
+                <span className="text-[9px] font-mono font-semibold text-[#bc6c25] bg-[#bc6c25]/10 px-1.5 py-0.5 rounded">
+                  LIVE
+                </span>
+              )}
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[10px] font-mono text-slate-500 uppercase">Registrations</span>
+              <span className="text-sm font-mono font-bold text-[#9E5838]">
+                {activePoint.registrations.toLocaleString()}
+              </span>
+            </div>
+            {prevPoint && deltaReg !== 0 && (
+              <div className="flex items-baseline justify-between gap-3 -mt-0.5">
+                <span className="sr-only">Change</span>
+                <span
+                  className={`text-[10px] font-mono ml-auto ${
+                    deltaReg > 0 ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
+                >
+                  {deltaReg > 0 ? '▲' : '▼'} {Math.abs(deltaReg)}
+                </span>
+              </div>
+            )}
+            <div className="h-px bg-slate-100 my-1.5" />
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[10px] font-mono text-slate-500 uppercase">Engagement</span>
+              <span className="text-sm font-mono font-bold text-[#355872]">
+                {activePoint.engagement.toLocaleString()}
+              </span>
+            </div>
+            {prevPoint && deltaEng !== 0 && (
+              <div className="flex items-baseline justify-between gap-3 -mt-0.5">
+                <span className="sr-only">Change</span>
+                <span
+                  className={`text-[10px] font-mono ml-auto ${
+                    deltaEng > 0 ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
+                >
+                  {deltaEng > 0 ? '▲' : '▼'} {Math.abs(deltaEng)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+>>>>>>> pr/chat-and-local-dev-fix

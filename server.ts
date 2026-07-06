@@ -1,13 +1,27 @@
 import express from "express";
+<<<<<<< HEAD
+=======
+import fs from "fs";
+>>>>>>> pr/chat-and-local-dev-fix
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
+<<<<<<< HEAD
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
+=======
+// Load .env.local first (highest priority), then fall back to .env.
+// dotenv.config() without args only reads .env, which silently skips .env.local.
+dotenv.config({ path: '.env.local' });
+dotenv.config();
+
+const app = express();
+const PORT = Number(process.env.PORT || 3000);
+>>>>>>> pr/chat-and-local-dev-fix
 
 app.use(express.json());
 
@@ -260,6 +274,105 @@ app.delete('/api/registrations', (req: any, res: any) => {
   res.json({ success: true, message: 'Registration cancelled successfully' });
 });
 
+<<<<<<< HEAD
+=======
+// ORGANIZATION ID SUITE API
+interface Organization {
+  id: string;
+  owner_id: string;
+  org_name: string;
+  bio: string;
+  location: string;
+  logo_url: string;
+  banner_url: string;
+  website_url: string;
+  deactivated: boolean;
+}
+
+let organizationsPool: Organization[] = [
+  {
+    id: "org-master",
+    owner_id: "admin_master",
+    org_name: "BanglaTech Labs Hub",
+    bio: "Pioneering competitive programming, hackathons, and high-performance open-source initiatives to discover the next generation of engineers.",
+    location: "Dhaka, Bangladesh",
+    logo_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop",
+    banner_url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=300&fit=crop",
+    website_url: "https://banglatechlabs.org",
+    deactivated: false
+  }
+];
+
+app.get('/api/organizations', (req: any, res: any) => {
+  const { owner_id } = req.query;
+  if (!owner_id) {
+    return res.json({ success: true, organizations: organizationsPool.filter(o => !o.deactivated) });
+  }
+  const org = organizationsPool.find(o => o.owner_id === owner_id);
+  if (!org) {
+    return res.json({ success: true, organization: null });
+  }
+  res.json({ success: true, organization: org });
+});
+
+app.post('/api/organizations', (req: any, res: any) => {
+  const { id, owner_id, org_name, bio, location, logo_url, banner_url, website_url } = req.body;
+  const authHeaderUserId = req.headers['authorization'];
+
+  if (!owner_id || !org_name) {
+    return res.status(400).json({ error: 'Missing core identity suite parameters' });
+  }
+
+  // Row-Level Security policy simulation
+  if (!authHeaderUserId || authHeaderUserId !== owner_id) {
+    return res.status(403).json({ error: 'FORBIDDEN: Database Policy RLS violation - You are not authorized to update this organization node.' });
+  }
+
+  const index = organizationsPool.findIndex(o => o.owner_id === owner_id);
+  const updatedOrg: Organization = {
+    id: id || 'org-' + Math.random().toString(36).substring(4),
+    owner_id,
+    org_name,
+    bio: bio || '',
+    location: location || '',
+    logo_url: logo_url || '',
+    banner_url: banner_url || '',
+    website_url: website_url || '',
+    deactivated: false
+  };
+
+  if (index !== -1) {
+    organizationsPool[index] = updatedOrg;
+  } else {
+    organizationsPool.push(updatedOrg);
+  }
+
+  res.json({ success: true, message: 'Organization identity synchronized successfully', organization: updatedOrg });
+});
+
+app.post('/api/organizations/deactivate', (req: any, res: any) => {
+  const { owner_id } = req.body;
+  const authHeaderUserId = req.headers['authorization'];
+
+  if (!owner_id) {
+    return res.status(400).json({ error: 'Missing owner_id parameter' });
+  }
+
+  // Row-Level Security
+  if (!authHeaderUserId || authHeaderUserId !== owner_id) {
+    return res.status(403).json({ error: 'FORBIDDEN: Database Policy RLS violation - Unauthorized deactivation attempt.' });
+  }
+
+  const index = organizationsPool.findIndex(o => o.owner_id === owner_id);
+  if (index !== -1) {
+    organizationsPool[index].deactivated = true;
+    res.json({ success: true, message: 'Organization successfully deactivated', organization: organizationsPool[index] });
+  } else {
+    res.status(404).json({ error: 'Organization profile not found' });
+  }
+});
+
+>>>>>>> pr/chat-and-local-dev-fix
 // SECURE REST APIS FOR NOTIFICATIONS
 app.get('/api/notifications', (req: any, res: any) => {
   const userId = req.query.userId || '';
@@ -347,6 +460,7 @@ app.get('/api/notifications/stream', (req: any, res: any) => {
   });
 });
 
+<<<<<<< HEAD
 // Vite middleware for development or build assets servicing
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
@@ -355,6 +469,54 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+=======
+function startApiServer(port: number): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const tryListen = (currentPort: number) => {
+      const server = app.listen(currentPort, "0.0.0.0", () => resolve(currentPort));
+      server.on('error', (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EADDRINUSE') {
+          const fallbackPort = currentPort + 1;
+          console.warn(`Port ${currentPort} is busy, trying ${fallbackPort} instead.`);
+          tryListen(fallbackPort);
+        } else {
+          reject(err);
+        }
+      });
+    };
+
+    tryListen(port);
+  });
+}
+
+// Vite middleware for development or build assets servicing
+async function startServer() {
+  const actualPort = await startApiServer(PORT);
+  process.env.PORT = String(actualPort);
+  process.env.VITE_API_TARGET = `http://localhost:${actualPort}`;
+
+  if (process.env.NODE_ENV !== "production") {
+    // Run Vite's dev server INDEPENDENTLY on its own port (5173).
+    // This is much more reliable on Windows than middlewareMode.
+    // Express now uses the actual available port for /api/* routes.
+    const { createServer } = await import("vite");
+    const vite = await createServer({
+      server: {
+        port: 5173,
+        strictPort: false,
+        proxy: {
+          '/api': {
+            target: process.env.VITE_API_TARGET,
+            changeOrigin: true,
+          },
+        },
+      },
+      appType: "spa",
+    });
+    await vite.listen();
+    console.log(`Vite dev server running on http://localhost:5173`);
+    console.log(`API server running on http://localhost:${actualPort}`);
+>>>>>>> pr/chat-and-local-dev-fix
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -362,10 +524,13 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+<<<<<<< HEAD
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+=======
+>>>>>>> pr/chat-and-local-dev-fix
 }
 
 startServer();
