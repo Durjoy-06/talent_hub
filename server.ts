@@ -1,19 +1,11 @@
 import express from "express";
-<<<<<<< HEAD
-=======
 import fs from "fs";
->>>>>>> pr/chat-and-local-dev-fix
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { createClient } from '@supabase/supabase-js';
 
-<<<<<<< HEAD
-dotenv.config();
-
-const app = express();
-const PORT = 3000;
-=======
 // Load .env.local first (highest priority), then fall back to .env.
 // dotenv.config() without args only reads .env, which silently skips .env.local.
 dotenv.config({ path: '.env.local' });
@@ -21,7 +13,18 @@ dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
->>>>>>> pr/chat-and-local-dev-fix
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabaseAdmin = supabaseUrl && supabaseServiceRoleKey
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, { auth: { persistSession: false } })
+  : null;
+
+const supabaseClient = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false } })
+  : null;
 
 app.use(express.json());
 
@@ -274,8 +277,6 @@ app.delete('/api/registrations', (req: any, res: any) => {
   res.json({ success: true, message: 'Registration cancelled successfully' });
 });
 
-<<<<<<< HEAD
-=======
 // ORGANIZATION ID SUITE API
 interface Organization {
   id: string;
@@ -303,8 +304,83 @@ let organizationsPool: Organization[] = [
   }
 ];
 
-app.get('/api/organizations', (req: any, res: any) => {
+async function loadOrganizationsFromSupabase(ownerId?: string) {
+  const client = supabaseAdmin ?? supabaseClient;
+  if (!client) return null;
+
+  let query = client.from('organizations').select('*').order('created_at', { ascending: false });
+  if (ownerId) {
+    query = query.eq('owner_id', ownerId);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Supabase organizations query failed:', error.message);
+    return null;
+  }
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id ?? row.owner_id,
+    owner_id: row.owner_id ?? '',
+    org_name: row.org_name ?? row.name ?? '',
+    bio: row.bio ?? '',
+    location: row.location ?? '',
+    logo_url: row.logo_url ?? '',
+    banner_url: row.banner_url ?? '',
+    website_url: row.website_url ?? '',
+    deactivated: Boolean(row.deactivated)
+  }));
+}
+
+app.post('/api/supabase-test', async (req: any, res: any) => {
+  const { table = 'organizations', columns = '*', limit = 1 } = req.body ?? {};
+
+  if (!supabaseAdmin) {
+    return res.status(500).json({
+      success: false,
+      stage: 'config',
+      message: 'Supabase service role key is not configured on the server.',
+      hint: 'Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your .env file and restart the server.'
+    });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select(columns)
+    .limit(limit);
+
+  if (error) {
+    const message = error.message ?? '';
+    const code = error.code;
+    let stage: string = 'query';
+    let hint = 'Check the Supabase table name, schema, and RLS policies.';
+
+    if (code === '42501' || /permission denied/i.test(message) || /row-level security/i.test(message)) {
+      stage = 'rls';
+      hint = 'RLS is blocking the request. For local testing, disable RLS or add a policy for anon/authenticated access.';
+    } else if (code === 'PGRST205' || /relation .* does not exist/i.test(message)) {
+      stage = 'schema';
+      hint = 'The table name or schema is different from the one being queried.';
+    }
+
+    return res.status(500).json({ success: false, stage, code, message, hint });
+  }
+
+  return res.json({ success: true, rowCount: data?.length ?? 0, sample: data?.[0] ?? null });
+});
+
+app.get('/api/organizations', async (req: any, res: any) => {
   const { owner_id } = req.query;
+  const supabaseOrganizations = await loadOrganizationsFromSupabase(typeof owner_id === 'string' ? owner_id : undefined);
+
+  if (supabaseOrganizations !== null) {
+    if (!owner_id) {
+      return res.json({ success: true, organizations: supabaseOrganizations.filter((o: Organization) => !o.deactivated) });
+    }
+    const org = supabaseOrganizations[0] ?? null;
+    return res.json({ success: true, organization: org });
+  }
+
   if (!owner_id) {
     return res.json({ success: true, organizations: organizationsPool.filter(o => !o.deactivated) });
   }
@@ -315,7 +391,7 @@ app.get('/api/organizations', (req: any, res: any) => {
   res.json({ success: true, organization: org });
 });
 
-app.post('/api/organizations', (req: any, res: any) => {
+app.post('/api/organizations', async (req: any, res: any) => {
   const { id, owner_id, org_name, bio, location, logo_url, banner_url, website_url } = req.body;
   const authHeaderUserId = req.headers['authorization'];
 
@@ -323,9 +399,34 @@ app.post('/api/organizations', (req: any, res: any) => {
     return res.status(400).json({ error: 'Missing core identity suite parameters' });
   }
 
-  // Row-Level Security policy simulation
   if (!authHeaderUserId || authHeaderUserId !== owner_id) {
     return res.status(403).json({ error: 'FORBIDDEN: Database Policy RLS violation - You are not authorized to update this organization node.' });
+  }
+
+  const client = supabaseAdmin ?? supabaseClient;
+  if (client) {
+    const { data, error } = await client
+      .from('organizations')
+      .upsert({
+        id: id || undefined,
+        owner_id,
+        org_name,
+        bio: bio || '',
+        location: location || '',
+        logo_url: logo_url || '',
+        banner_url: banner_url || '',
+        website_url: website_url || '',
+        deactivated: false,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'owner_id' })
+      .select('*')
+      .single();
+
+    if (!error && data) {
+      return res.json({ success: true, message: 'Organization identity synchronized successfully', organization: data });
+    }
+
+    console.error('Supabase organization write failed:', error?.message);
   }
 
   const index = organizationsPool.findIndex(o => o.owner_id === owner_id);
@@ -372,7 +473,6 @@ app.post('/api/organizations/deactivate', (req: any, res: any) => {
   }
 });
 
->>>>>>> pr/chat-and-local-dev-fix
 // SECURE REST APIS FOR NOTIFICATIONS
 app.get('/api/notifications', (req: any, res: any) => {
   const userId = req.query.userId || '';
@@ -460,16 +560,6 @@ app.get('/api/notifications/stream', (req: any, res: any) => {
   });
 });
 
-<<<<<<< HEAD
-// Vite middleware for development or build assets servicing
-async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-=======
 function startApiServer(port: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const tryListen = (currentPort: number) => {
@@ -516,7 +606,6 @@ async function startServer() {
     await vite.listen();
     console.log(`Vite dev server running on http://localhost:5173`);
     console.log(`API server running on http://localhost:${actualPort}`);
->>>>>>> pr/chat-and-local-dev-fix
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -524,13 +613,6 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-<<<<<<< HEAD
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-=======
->>>>>>> pr/chat-and-local-dev-fix
 }
 
 startServer();

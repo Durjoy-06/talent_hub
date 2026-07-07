@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { runSupabaseConnectionTest, ConnectionTestResult } from '../lib/connectionTest';
 
 interface EnvDebugInfo {
@@ -52,6 +52,10 @@ function readEnvInfo(): EnvDebugInfo {
 export default function SupabaseConnectionTestButton() {
   const [result, setResult] = useState<ConnectionTestResult | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void run();
+  }, []);
 
   const run = async () => {
     setBusy(true);
