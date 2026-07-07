@@ -36,12 +36,8 @@ import {
   Code,
   Image,
   Award,
-<<<<<<< HEAD
-  Video
-=======
   Video,
   Building
->>>>>>> pr/chat-and-local-dev-fix
 } from 'lucide-react';
 import { LoggedInUser, Opportunity, EventHub, Application } from '../types';
 
@@ -113,11 +109,7 @@ interface StudentDashboardProps {
   onSaveOpportunity: (opportunityId: string) => void;
   onRegisterEvent: (eventId: string) => void;
   onUpdateProfile?: (updatedUser: LoggedInUser) => void;
-<<<<<<< HEAD
-  requestedTab?: 'growth' | 'applications' | 'events' | 'saved' | 'showcase';
-=======
   requestedTab?: 'growth' | 'applications' | 'events' | 'saved' | 'showcase' | 'organizations';
->>>>>>> pr/chat-and-local-dev-fix
   onOpenNotifications?: () => void;
   unreadCount?: number;
 }
@@ -456,9 +448,6 @@ export default function StudentDashboard({
 
     setIsEditing(false);
   };
-<<<<<<< HEAD
-  const [activeTab, setActiveTab] = useState<'growth' | 'applications' | 'events' | 'saved' | 'showcase'>('growth');
-=======
   const [activeTab, setActiveTab] = useState<'growth' | 'applications' | 'events' | 'saved' | 'showcase' | 'organizations'>('growth');
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [isLoadingOrgs, setIsLoadingOrgs] = useState<boolean>(false);
@@ -477,7 +466,6 @@ export default function StudentDashboard({
       .catch(err => console.error("Error loading organizations:", err))
       .finally(() => setIsLoadingOrgs(false));
   }, [activeTab]);
->>>>>>> pr/chat-and-local-dev-fix
   const [dashboardToast, setDashboardToast] = useState<{ message: string; show: boolean } | null>(null);
   const [morphingEventId, setMorphingEventId] = useState<string | null>(null);
   const [discoveryTab, setDiscoveryTab] = useState<'All' | 'Active' | 'Deadline Near'>('All');
@@ -672,8 +660,6 @@ export default function StudentDashboard({
             </button>
 
             <button
-<<<<<<< HEAD
-=======
               onClick={() => setActiveTab('organizations')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium transition-all ${
                 activeTab === 'organizations' 
@@ -692,7 +678,6 @@ export default function StudentDashboard({
             </button>
 
             <button
->>>>>>> pr/chat-and-local-dev-fix
               onClick={() => setActiveTab('saved')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium transition-all ${
                 activeTab === 'saved' 
@@ -1297,8 +1282,6 @@ export default function StudentDashboard({
               </motion.div>
             )}
 
-<<<<<<< HEAD
-=======
             {activeTab === 'organizations' && (
               <motion.div
                 key="organizations_portal"
@@ -1489,7 +1472,6 @@ export default function StudentDashboard({
               </motion.div>
             )}
 
->>>>>>> pr/chat-and-local-dev-fix
             {activeTab === 'saved' && (
               <motion.div
                 key="saved"

@@ -98,6 +98,38 @@ export async function runSupabaseConnectionTest(
   let error: { message?: string; code?: string } | null = null;
 
   try {
+    const serverResponse = await fetch('/api/supabase-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, columns, limit })
+    });
+    const serverPayload = await serverResponse.json();
+
+    if (serverPayload && serverPayload.success) {
+      data = serverPayload.sample ? [serverPayload.sample] : [];
+      return {
+        ok: true,
+        stage: 'ok',
+        rowCount: serverPayload.rowCount ?? 0,
+        sample: serverPayload.sample ?? null,
+        elapsedMs: Math.round(performance.now() - startedAt),
+      };
+    }
+
+    if (serverPayload && serverPayload.stage) {
+      return {
+        ok: false,
+        stage: serverPayload.stage as ConnectionTestResult['stage'],
+        message: serverPayload.message ?? 'Supabase test failed.',
+        hint: serverPayload.hint ?? 'Check the server logs for the full error.',
+        code: serverPayload.code,
+      } as ConnectionTestResult;
+    }
+  } catch (err) {
+    // Fall back to direct browser queries if the server endpoint is unavailable.
+  }
+
+  try {
     const result = await supabase
       .from(table)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

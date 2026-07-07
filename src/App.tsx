@@ -47,6 +47,7 @@ import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import ChatButton from './components/ChatButton';
 import NotificationSheet from './components/NotificationSheet';
+import SupabaseConnectionTestButton from './components/SupabaseConnectionTestButton';
 
 // @ts-ignore
 import huntclubBgTeam from './assets/images/huntclub_bg_team_v2_1781179955964.jpg';
@@ -150,8 +151,6 @@ export default function App() {
     setStats((prev: any) => ({ ...prev, activeProjects: opportunities.length }));
   }, [opportunities]);
 
-<<<<<<< HEAD
-=======
   // Dynamic live organizations count sync
   useEffect(() => {
     fetch('/api/organizations')
@@ -168,7 +167,6 @@ export default function App() {
       .catch(err => console.error("Error syncing platform stats:", err));
   }, []);
 
->>>>>>> pr/chat-and-local-dev-fix
   useEffect(() => {
     localStorage.setItem('talenthub_bd_events', JSON.stringify(events));
   }, [events]);
@@ -966,6 +964,8 @@ export default function App() {
 
       {/* Global Startup-Inspired Interactive AI Assistant */}
       <ChatButton user={user} />
+
+      <SupabaseConnectionTestButton />
 
     </div>
   );

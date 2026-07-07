@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-=======
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SendOfferButton } from './SendOfferButton';
->>>>>>> pr/chat-and-local-dev-fix
 import { 
   Building, 
   MapPin, 
@@ -54,11 +49,7 @@ interface OrganizerDashboardProps {
   onAddEvent: (newEvent: EventHub) => void;
   onDeleteOpportunity: (oppId: string) => void;
   onDeleteEvent: (eventId: string) => void;
-<<<<<<< HEAD
-  requestedTab?: 'command' | 'applicants' | 'postings' | 'publish';
-=======
   requestedTab?: 'command' | 'applicants' | 'postings' | 'publish' | 'brand';
->>>>>>> pr/chat-and-local-dev-fix
   onOpenNotifications?: () => void;
   unreadCount?: number;
 }
@@ -81,11 +72,7 @@ export default function OrganizerDashboard({
 }: OrganizerDashboardProps) {
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
-<<<<<<< HEAD
-  const [activeTab, setActiveTab] = useState<'command' | 'applicants' | 'postings' | 'publish'>('command');
-=======
   const [activeTab, setActiveTab] = useState<'command' | 'applicants' | 'postings' | 'publish' | 'brand'>('command');
->>>>>>> pr/chat-and-local-dev-fix
 
   useEffect(() => {
     if (requestedTab) {
@@ -101,8 +88,6 @@ export default function OrganizerDashboard({
   const [totalRegistrations, setTotalRegistrations] = useState<number>(0);
   const [activeAdNode, setActiveAdNode] = useState<number>(0);
 
-<<<<<<< HEAD
-=======
   // Organization Identity Suite state
   const [orgId, setOrgId] = useState<string>('');
   const [orgName, setOrgName] = useState<string>('');
@@ -338,7 +323,6 @@ export default function OrganizerDashboard({
     }
   };
 
->>>>>>> pr/chat-and-local-dev-fix
   // Form states - Opportunity Posting
   const [oppTitle, setOppTitle] = useState<string>('');
   const [oppOrg, setOppOrg] = useState<string>('');
@@ -612,8 +596,6 @@ export default function OrganizerDashboard({
               <Plus className="w-4 h-4 shrink-0" />
               {isSidebarExpanded && <span>[ Quick Publish ]</span>}
             </button>
-<<<<<<< HEAD
-=======
 
             <button
               onClick={() => setActiveTab('brand')}
@@ -627,7 +609,6 @@ export default function OrganizerDashboard({
               <Building className="w-4 h-4 shrink-0" />
               {isSidebarExpanded && <span>[ Brand Identity ]</span>}
             </button>
->>>>>>> pr/chat-and-local-dev-fix
           </nav>
         </div>
 
@@ -745,58 +726,6 @@ export default function OrganizerDashboard({
 
                 {/* Highly aesthetic analytical SVG visualizer */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-<<<<<<< HEAD
-                  
-                  {/* Custom Trend Graph */}
-                  <div className="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-3xl text-left relative overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="space-y-0.5">
-                        <span className="text-[9px] font-mono text-[#7AAACE] uppercase tracking-wider font-bold">// SYSTEM METRIC DYNAMICS</span>
-                        <h3 className="font-display font-extrabold text-sm text-slate-800 flex items-center gap-1.5">
-                          <TrendingUp className="w-4 h-4 text-orange-600" /> Platform Registrations & Engagement Curve
-                        </h3>
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-400 bg-slate-50 border px-2.5 py-1 rounded-lg">LAST 7 CYCLES</span>
-                    </div>
-
-                    {/* Handmade High-Fidelity SVG Curve Chart */}
-                    <div className="relative h-44 w-full">
-                      <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#9E5838" stopOpacity="0.18" />
-                            <stop offset="100%" stopColor="#9E5838" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Grid lines */}
-                        <line x1="0" y1="30" x2="500" y2="30" stroke="#f1f5f9" strokeWidth="1" />
-                        <line x1="0" y1="75" x2="500" y2="75" stroke="#f1f5f9" strokeWidth="1" />
-                        <line x1="0" y1="120" x2="500" y2="120" stroke="#f1f5f9" strokeWidth="1" />
-
-                        {/* Trend Area */}
-                        <path 
-                          d="M 0 130 Q 80 110 140 80 T 280 60 T 420 40 T 500 20 L 500 150 L 0 150 Z" 
-                          fill="url(#curveGradient)" 
-                        />
-                        {/* Trend Line */}
-                        <path 
-                          d="M 0 130 Q 80 110 140 80 T 280 60 T 420 40 T 500 20" 
-                          fill="none" 
-                          stroke="#9E5838" 
-                          strokeWidth="2.5" 
-                          strokeLinecap="round"
-                        />
-                        {/* Data marker dots */}
-                        <circle cx="140" cy="80" r="4" fill="#9E5838" stroke="white" strokeWidth="1.5" />
-                        <circle cx="280" cy="60" r="4" fill="#9E5838" stroke="white" strokeWidth="1.5" />
-                        <circle cx="420" cy="40" r="4" fill="#9E5838" stroke="white" strokeWidth="1.5" />
-                        <circle cx="500" cy="20" r="5" fill="#bc6c25" stroke="white" strokeWidth="2.0" />
-                      </svg>
-                    </div>
-
-                    {/* Chart Labels bar */}
-                    <div className="flex justify-between items-center text-[9px] font-mono text-slate-400 border-t border-slate-100 pt-4 mt-2">
-=======
 
                   {/* Custom Trend Graph */}
                   <div className="lg:col-span-8 bg-white border border-slate-200 p-4 sm:p-6 rounded-3xl text-left relative overflow-hidden shadow-sm">
@@ -815,7 +744,6 @@ export default function OrganizerDashboard({
 
                     {/* Chart Labels bar */}
                     <div className="grid grid-cols-7 items-center text-[9px] sm:text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-4 mt-2 gap-1 text-center">
->>>>>>> pr/chat-and-local-dev-fix
                       <span>MON 05</span>
                       <span>TUE 06</span>
                       <span>WED 07</span>
@@ -985,17 +913,6 @@ export default function OrganizerDashboard({
                               >
                                 [ Schedule Call ]
                               </button>
-<<<<<<< HEAD
-                              <button 
-                                onClick={() => {
-                                  onChangeApplicationStatus(app.id, 'Offer Received');
-                                }}
-                                className="px-2.5 py-1.5 bg-orange-850 hover:bg-orange-700 text-white rounded-lg font-bold transition-all shadow-[2px_2px_0px_0px_rgba(158,88,56,0.2)]"
-                                id={`btn-offer-${app.id}`}
-                              >
-                                [ Send Offer ]
-                              </button>
-=======
                               <SendOfferButton
                                 registrationId={app.id}
                                 onSuccess={(id) => {
@@ -1005,7 +922,6 @@ export default function OrganizerDashboard({
                                   console.error('SendOfferButton failed:', err);
                                 }}
                               />
->>>>>>> pr/chat-and-local-dev-fix
                             </div>
                           </div>
                         </div>
@@ -1353,8 +1269,6 @@ export default function OrganizerDashboard({
                 </div>
               </motion.div>
             )}
-<<<<<<< HEAD
-=======
 
             {activeTab === 'brand' && (
               <motion.div
@@ -1907,7 +1821,6 @@ export default function OrganizerDashboard({
                 </AnimatePresence>
               </motion.div>
             )}
->>>>>>> pr/chat-and-local-dev-fix
           </AnimatePresence>
         </main>
 
@@ -2250,8 +2163,6 @@ export default function OrganizerDashboard({
     </div>
   );
 }
-<<<<<<< HEAD
-=======
 
 // --- Responsive Trend Chart -----------------------------------------------------
 // Self-contained chart that measures its container with ResizeObserver so it
@@ -2601,4 +2512,3 @@ function ResponsiveTrendChart() {
     </div>
   );
 }
->>>>>>> pr/chat-and-local-dev-fix

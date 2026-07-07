@@ -13,69 +13,6 @@ interface Cluster {
   location: string;
 }
 
-<<<<<<< HEAD
-export default function CommunitiesClusters() {
-  const [clusters, setClusters] = useState<Cluster[]>([
-    {
-      id: 'c1',
-      name: 'SUST CP Algorists',
-      count: 240,
-      focus: 'Advanced Graph Solutions, ACM-ICPC trainings, Rust compilation.',
-      tags: ['Competitive Programming', 'Algorithms', 'C++'],
-      color: 'rgba(53, 88, 114, 0.95)', // Primary Slate
-      scale: 1.15,
-      location: 'Sylhet'
-    },
-    {
-      id: 'c2',
-      name: 'Bangla NLP Guild',
-      count: 512,
-      focus: 'Bengali transformer-based LLMs, text summarizers, voice synthesizers.',
-      tags: ['NLP', 'AI', 'PyTorch'],
-      color: 'rgba(122, 170, 206, 0.95)', // Secondary Sky
-      scale: 1.25,
-      location: 'Dhaka'
-    },
-    {
-      id: 'c3',
-      name: 'Dhaka Interaction Guild',
-      count: 180,
-      focus: 'Premium micro-interactions, Apple/Stripe-inspired CSS dynamics.',
-      tags: ['Framer Motion', 'Tailwind', 'Product Design'],
-      color: 'rgba(156, 213, 255, 0.95)', // Accent Light
-      scale: 1.1,
-      location: 'Dhaka'
-    },
-    {
-      id: 'c4',
-      name: 'Varendra AgriTech Labs',
-      count: 125,
-      focus: 'Geospatial sensor setups, crop health telemetry telemetry.',
-      tags: ['IoT Hardware', 'ESP32', 'Agriculture'],
-      color: 'rgba(53, 88, 114, 0.8)',
-      scale: 0.95,
-      location: 'Rajshahi'
-    },
-    {
-      id: 'c5',
-      name: 'Bay of Bengal Hardware Devs',
-      count: 210,
-      focus: 'Embedded software systems, marine IoT nodes, cargo trackers.',
-      tags: ['Firmware', 'C', 'Internet of Things'],
-      color: 'rgba(122, 170, 206, 0.8)',
-      scale: 1.05,
-      location: 'Chattogram'
-    }
-  ]);
-
-  const [activeClusterId, setActiveClusterId] = useState<string>('c2');
-  const [joinedClusterIds, setJoinedClusterIds] = useState<Record<string, boolean>>({});
-
-  const handleJoinCircle = (id: string) => {
-    if (joinedClusterIds[id]) return; // already joined
-
-    setClusters(prev => 
-=======
 const FALLBACK_CLUSTERS: Cluster[] = [
   { id: 'c1', name: 'BUET Computer Club', count: 420, focus: 'dhaka engineering portal', tags: ['CS', 'DHAKA'], color: 'rgba(53, 88, 114, 0.95)', scale: 1.1, location: 'Dhaka' },
   { id: 'c2', name: 'DU IT Society', count: 350, focus: 'Information technology research', tags: ['IT', 'DHAKA'], color: 'rgba(122, 170, 206, 0.95)', scale: 1.2, location: 'Dhaka' },
@@ -132,7 +69,6 @@ export default function CommunitiesClusters() {
     if (joinedClusterIds[id]) return; // already joined
 
     setClusters(prev =>
->>>>>>> pr/chat-and-local-dev-fix
       prev.map(c => c.id === id ? { ...c, count: c.count + 1 } : c)
     );
 
@@ -142,15 +78,11 @@ export default function CommunitiesClusters() {
     }));
   };
 
-<<<<<<< HEAD
-  const selectedCluster = clusters.find(c => c.id === activeClusterId) || clusters[1];
-=======
   const selectedCluster = clusters.find(c => c.id === activeClusterId) || clusters[0];
 
   if (!isLoading && !selectedCluster) {
     return null;
   }
->>>>>>> pr/chat-and-local-dev-fix
 
   return (
     <div id="communities" className="my-20">
