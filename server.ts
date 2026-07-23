@@ -335,16 +335,18 @@ async function loadOrganizationsFromSupabase(ownerId?: string) {
 app.post('/api/supabase-test', async (req: any, res: any) => {
   const { table = 'organizations', columns = '*', limit = 1 } = req.body ?? {};
 
-  if (!supabaseAdmin) {
+  const client = supabaseAdmin ?? supabaseClient;
+
+  if (!client) {
     return res.status(500).json({
       success: false,
       stage: 'config',
-      message: 'Supabase service role key is not configured on the server.',
-      hint: 'Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your .env file and restart the server.'
+      message: 'Supabase URL or anon key is not configured on the server.',
+      hint: 'Add SUPABASE_URL / VITE_SUPABASE_URL and SUPABASE_ANON_KEY / VITE_SUPABASE_ANON_KEY to your .env file and restart the server.'
     });
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await client
     .from(table)
     .select(columns)
     .limit(limit);
