@@ -47,7 +47,6 @@ import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import ChatButton from './components/ChatButton';
 import NotificationSheet from './components/NotificationSheet';
-import SupabaseConnectionTestButton from './components/SupabaseConnectionTestButton';
 
 // @ts-ignore
 import huntclubBgTeam from './assets/images/huntclub_bg_team_v2_1781179955964.jpg';
@@ -589,6 +588,13 @@ export default function App() {
                     <span>Talent Directory</span>
                   </button>
                   <button 
+                    onClick={() => scrollToSection('communities')}
+                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
+                  >
+                    <span className="w-1.5 h-1.5 bg-emerald-600" />
+                    <span>Clusters</span>
+                  </button>
+                  <button 
                     onClick={() => scrollToSection('opportunities-matrix')}
                     className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
                   >
@@ -601,13 +607,6 @@ export default function App() {
                   >
                     <span className="w-1.5 h-1.5 bg-rose-500 animate-pulse" />
                     <span>National Events</span>
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('communities')}
-                    className="flex items-center gap-2 group text-[11px] text-[#355872] font-mono px-3.5 py-2.5 rounded-none border border-[#355872]/15 hover:border-[#355872] bg-transparent hover:bg-[#355872]/5 transition-all duration-300 hover:shadow-[2px_2px_0px_0px_rgba(53,88,114,0.15)]"
-                  >
-                    <span className="w-1.5 h-1.5 bg-emerald-600" />
-                    <span>Clusters</span>
                   </button>
                 </nav>
 
@@ -964,8 +963,6 @@ export default function App() {
 
       {/* Global Startup-Inspired Interactive AI Assistant */}
       <ChatButton user={user} />
-
-      <SupabaseConnectionTestButton />
 
     </div>
   );
