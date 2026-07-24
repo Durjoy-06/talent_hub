@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getSupabaseClient } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Chrome, 
@@ -30,61 +31,120 @@ export default function PortalGateway({ onLoginSuccess, onBackToLanding }: Porta
   const [division, setDivision] = useState<string>('Dhaka');
   
   // Handshake connection state
-  const [authState, setAuthState] = useState<'idle' | 'oauth_connecting' | 'securing_tokens' | 'finalizing' | 'success'>('idle');
+  const [authState, setAuthState] = useState<'idle' | 'loading' | 'success'>('idle');
   const [authProgressMessage, setAuthProgressMessage] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const divisionsList = ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh'];
   const universitiesList = ['BUET', 'DU', 'SUST', 'CUET', 'RUET', 'KUET', 'IUT', 'NSU', 'BracU'];
 
-  // Handle OAuth Trigger sequence
-  const triggerGoogleOAuth = () => {
-    if (isSignUp && !name) {
-      alert('Please enter a Full Name for registration.');
+  const supabase = getSupabaseClient();
+
+  useEffect(() => {
+    setErrorMessage(null);
+  }, [role, isSignUp]);
+
+  const handleSignUp = async () => {
+    setErrorMessage(null);
+    if (!supabase) return setErrorMessage('Supabase not configured');
+    if (!name) return setErrorMessage('Full name is required for registration.');
+    if (!password) return setErrorMessage('Please provide a password for your account.');
+
+    setAuthState('loading');
+    setAuthProgressMessage('Creating account...');
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          university: role === 'student' ? university : null,
+          division,
+          role,
+        },
+      },
+    });
+    if (signUpError) {
+      setAuthState('idle');
+      setErrorMessage(signUpError.message || 'Signup failed');
       return;
     }
-    
-    setAuthState('oauth_connecting');
-    setAuthProgressMessage('Initiating Google OAuth Client via secure endpoint...');
-    
-    // Animate discrete steps of credential exchanges
-    setTimeout(() => {
-      setAuthState('securing_tokens');
-      setAuthProgressMessage('Retrieving ID token & validating client cookies...');
-      
-      setTimeout(() => {
-        setAuthState('finalizing');
-        setAuthProgressMessage('Registering sector encryption certificates & pulling graph profiles...');
-        
-        setTimeout(() => {
-          setAuthState('success');
-          setAuthProgressMessage('Session established securely. Injecting terminal tokens...');
-          
-          setTimeout(() => {
-            // Generate user profiles based on signup/signin state
-            const loggedInUser: LoggedInUser = {
-              id: role === 'student' ? 'stud_active_' + Date.now().toString().slice(-4) : 'org_active_' + Date.now().toString().slice(-4),
-              name: name || (role === 'student' ? 'Durjoy Banik' : 'Adnan Chowdhury'),
-              email: email,
-              role: role,
-              avatar: role === 'student' 
-                ? 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200' 
-                : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
-              division: division,
-              university: role === 'student' ? university : undefined,
-              skills: role === 'student' ? ['React', 'Next.js', 'TypeScript', 'Motion'] : undefined,
-              bio: role === 'student' 
-                ? 'Student Builder eager to connect with engineering networks across Bangladesh.' 
-                : 'Organizer coordinating student events & digital hackathons.',
-              github: role === 'student' ? 'https://github.com/durjoy' : undefined,
-              linkedin: role === 'student' ? 'https://linkedin.com/in/durjoy' : undefined,
-            };
-            
-            // Execute parent login logic (transitions out)
-            onLoginSuccess(loggedInUser);
-          }, 1000);
-        }, 1200);
-      }, 1000);
-    }, 1000);
+
+    const userId = signUpData?.user?.id;
+    if (!userId) {
+      setAuthState('idle');
+      setErrorMessage('Could not create user record.');
+      return;
+    }
+
+    setAuthState('success');
+    setAuthProgressMessage('Account created. Finalizing sign-in...');
+
+    const loggedInUser: LoggedInUser = {
+      id: userId,
+      name,
+      email,
+      role,
+      avatar: undefined,
+      division,
+      university: role === 'student' ? university : undefined,
+    };
+    onLoginSuccess(loggedInUser);
+  };
+
+  const handleSignIn = async () => {
+    setErrorMessage(null);
+    if (!supabase) return setErrorMessage('Supabase not configured');
+    if (!password) return setErrorMessage('Please enter your password.');
+
+    setAuthState('loading');
+    setAuthProgressMessage('Signing in...');
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthState('idle');
+      setErrorMessage(error.message || 'Sign-in failed');
+      return;
+    }
+
+    const user = data.user;
+    if (!user) {
+      setAuthState('idle');
+      setErrorMessage('No user returned from auth.');
+      return;
+    }
+
+    const { data: profile, error: profileErr } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (profileErr) {
+      setAuthState('idle');
+      setErrorMessage('Unable to load profile: ' + (profileErr.message || 'unknown'));
+      await supabase.auth.signOut();
+      return;
+    }
+
+    if (!profile || profile.role !== role) {
+      await supabase.auth.signOut();
+      setAuthState('idle');
+      setErrorMessage(`Access denied: this account is not registered as a ${role}.`);
+      return;
+    }
+
+    setAuthState('success');
+    setAuthProgressMessage('Authenticated. Redirecting...');
+
+    const loggedInUser: LoggedInUser = {
+      id: user.id,
+      name: profile.full_name || profile.name || '',
+      email: user.email || email,
+      role: profile.role,
+      avatar: profile.avatar_url || undefined,
+      division: profile.division || division,
+      university: profile.university || undefined
+    };
+
+    onLoginSuccess(loggedInUser);
   };
 
   // Primary Theme definitions
@@ -223,6 +283,24 @@ export default function PortalGateway({ onLoginSuccess, onBackToLanding }: Porta
                     />
                   </div>
 
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-500 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> PASSWORD
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:outline-none rounded-xl px-3.5 py-2.5 text-xs font-sans transition-all"
+                      id="auth-input-password"
+                    />
+                  </div>
+
+                  {errorMessage && (
+                    <div className="text-xs text-red-600 font-mono">{errorMessage}</div>
+                  )}
+
                   {isSignUp && role === 'student' && (
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
@@ -269,16 +347,15 @@ export default function PortalGateway({ onLoginSuccess, onBackToLanding }: Porta
                   )}
                 </div>
 
-                {/* Google OAuth trigger */}
                 <div className="space-y-3 pt-2">
                   <button
-                    onClick={triggerGoogleOAuth}
+                    onClick={() => { if (isSignUp) handleSignUp(); else handleSignIn(); }}
                     type="button"
+                    disabled={authState === 'loading'}
                     className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl text-xs font-mono font-bold py-3 px-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 duration-200"
-                    id="google-oauth-btn"
+                    id="auth-submit-btn"
                   >
-                    <Chrome className="w-4 h-4 text-orange-400" />
-                    <span>[ Connect with Google Workspace ]</span>
+                    <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
                   </button>
                 </div>
 
