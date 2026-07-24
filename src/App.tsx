@@ -47,6 +47,7 @@ import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import ChatButton from './components/ChatButton';
 import NotificationSheet from './components/NotificationSheet';
+import { getSupabaseClient } from './lib/supabase';
 
 // @ts-ignore
 import huntclubBgTeam from './assets/images/huntclub_bg_team_v2_1781179955964.jpg';
@@ -341,7 +342,15 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear supabase session server-side + client
+    try {
+      const supabase = getSupabaseClient();
+      if (supabase) await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Error signing out from Supabase:', err);
+    }
+
     setUser(null);
     setView('landing');
     localStorage.removeItem('talenthub_bd_user');
