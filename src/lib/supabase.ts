@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Next.js/Node.js এর নিয়ম অনুযায়ী process.env ব্যবহার করতে হবে
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+// এখানে আপনার .env এর একদম সঠিক নাম বসানো হয়েছে (VITE_ সহ)
+// Next.js এ ব্রাউজারে কাজ করার জন্য নামের আগে NEXT_PUBLIC_ দিতে হয়।
+// তবে আপনার .env এ যেহেতু VITE_ আছে, তাই আমরা NEXT_PUBLIC_VITE_ দিয়ে ধরি
+const supabaseUrl = process.env.NEXT_PUBLIC_VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_VITE_SUPABASE_ANON_KEY;
 
 const isConfigured =
   typeof supabaseUrl === 'string' &&
