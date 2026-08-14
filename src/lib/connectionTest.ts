@@ -1,4 +1,3 @@
-import { apiUrl } from './api';
 import { getSupabaseClient, isSupabaseConfigured } from './supabase';
 
 /**
@@ -99,7 +98,7 @@ export async function runSupabaseConnectionTest(
   let error: { message?: string; code?: string } | null = null;
 
   try {
-    const serverResponse = await fetch(apiUrl('/api/supabase-test'), {
+    const serverResponse = await fetch('/api/supabase-test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ table, columns, limit })

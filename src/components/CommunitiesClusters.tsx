@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { apiUrl } from '../lib/api';
 import { Network, Users, MessageSquare, ArrowRight, Layers, Sparkles } from 'lucide-react';
 
 interface Cluster {
@@ -29,7 +28,7 @@ export default function CommunitiesClusters() {
   const [joinedClusterIds, setJoinedClusterIds] = useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
-    fetch(apiUrl('/api/organizations'))
+    fetch('/api/organizations')
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.organizations) {
