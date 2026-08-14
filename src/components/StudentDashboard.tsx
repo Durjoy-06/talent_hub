@@ -456,7 +456,7 @@ export default function StudentDashboard({
 
   useEffect(() => {
     setIsLoadingOrgs(true);
-    fetch('/api/organizations')
+    fetch(apiUrl('/api/organizations'))
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.organizations) {
