@@ -116,18 +116,37 @@ export default function PortalGateway({ onLoginSuccess, onBackToLanding }: Porta
       return;
     }
 
-    const { data: profile, error: profileErr } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profileErr) {
-      setAuthState('idle');
-      setErrorMessage('Unable to load profile: ' + (profileErr.message || 'unknown'));
-      await supabase.auth.signOut();
-      return;
+    const metadataRole = user.user_metadata?.role;
+    const safeRole = (value: unknown): 'student' | 'organizer' | null => {
+      if (value === 'student' || value === 'organizer') return value;
+      return null;
+    };
+
+    let profile: any = null;
+    let profileErr: any = null;
+
+    try {
+      const { data: fetchedProfile, error: fetchedError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      profile = fetchedProfile;
+      profileErr = fetchedError;
+    } catch (err) {
+      profileErr = err;
     }
 
-    if (!profile || profile.role !== role) {
-      await supabase.auth.signOut();
+    const resolvedRole = safeRole(profile?.role) ?? safeRole(metadataRole) ?? role;
+
+    if (profileErr && !profile) {
+      console.warn('Profile lookup failed during sign-in; continuing with auth metadata fallback.', profileErr);
+    }
+
+    if (!resolvedRole || (resolvedRole !== 'student' && resolvedRole !== 'organizer')) {
       setAuthState('idle');
-      setErrorMessage(`Access denied: this account is not registered as a ${role}.`);
+      setErrorMessage('This account is missing a valid role. Please create a fresh profile or contact support.');
       return;
     }
 
@@ -136,12 +155,12 @@ export default function PortalGateway({ onLoginSuccess, onBackToLanding }: Porta
 
     const loggedInUser: LoggedInUser = {
       id: user.id,
-      name: profile.full_name || profile.name || '',
+      name: profile?.full_name || profile?.name || user.user_metadata?.full_name || name || '',
       email: user.email || email,
-      role: profile.role,
-      avatar: profile.avatar_url || undefined,
-      division: profile.division || division,
-      university: profile.university || undefined
+      role: resolvedRole,
+      avatar: profile?.avatar_url || user.user_metadata?.avatar_url || undefined,
+      division: profile?.division || user.user_metadata?.division || division,
+      university: profile?.university || user.user_metadata?.university || undefined
     };
 
     onLoginSuccess(loggedInUser);

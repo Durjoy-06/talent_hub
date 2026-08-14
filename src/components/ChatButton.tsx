@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { apiUrl } from '../lib/api';
 import { 
   Send, 
   X, 
@@ -125,7 +124,7 @@ export default function ChatButton({ user }: ChatButtonProps) {
         content: msg.content
       }));
 
-      const res = await fetch(apiUrl('/api/chat'), {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

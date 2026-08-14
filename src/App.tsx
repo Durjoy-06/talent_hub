@@ -47,7 +47,6 @@ import StudentDashboard from './components/StudentDashboard';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import ChatButton from './components/ChatButton';
 import NotificationSheet from './components/NotificationSheet';
-import { apiUrl } from './lib/api';
 import { getSupabaseClient } from './lib/supabase';
 
 // @ts-ignore
@@ -154,7 +153,7 @@ export default function App() {
 
   // Dynamic live organizations count sync
   useEffect(() => {
-    fetch(apiUrl('/api/organizations'))
+    fetch('/api/organizations')
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.organizations) {
@@ -179,7 +178,7 @@ export default function App() {
   // Synchronize student event registrations from backend junction table (The "Senior" Way)
   useEffect(() => {
     if (user && user.role === 'student') {
-      fetch(apiUrl(`/api/registrations?studentId=${user.id}`))
+      fetch(`/api/registrations?studentId=${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (data && data.success) {
@@ -208,7 +207,7 @@ export default function App() {
     const targetUserId = user ? (user.role === 'student' ? user.id : 'admin_master') : 'guest';
     
     // First load current notifications
-    fetch(apiUrl(`/api/notifications?userId=${targetUserId}`))
+    fetch(`/api/notifications?userId=${targetUserId}`)
       .then(r => r.json())
       .then(data => {
         if (data && data.success) {
@@ -218,7 +217,7 @@ export default function App() {
       .catch(err => console.warn("Fallback to client storage for alerts database:", err));
 
     // Connect Server-Sent-Events Real-time telemetric link
-    const eventSource = new EventSource(apiUrl(`/api/notifications/stream?userId=${targetUserId}`));
+    const eventSource = new EventSource(`/api/notifications/stream?userId=${targetUserId}`);
     
     eventSource.onmessage = (event) => {
       try {
@@ -246,7 +245,7 @@ export default function App() {
 
     // 2. Persist update on the database
     try {
-      await fetch(apiUrl(`/api/notifications/${id}/read`), { method: 'PUT' });
+      await fetch(`/api/notifications/${id}/read`, { method: 'PUT' });
     } catch (err) {
       console.error("Backend sync failed for dismiss. State maintained locally:", err);
     }
@@ -260,7 +259,7 @@ export default function App() {
 
     // 2. Persist update on the database
     try {
-      await fetch(apiUrl(`/api/notifications/read-all?userId=${targetUserId}`), { method: 'PUT' });
+      await fetch(`/api/notifications/read-all?userId=${targetUserId}`, { method: 'PUT' });
     } catch (err) {
       console.error("Backend sync failed for mark all read. State maintained locally:", err);
     }
@@ -283,7 +282,7 @@ export default function App() {
     setNotifications(prev => [tempNotif, ...prev]);
 
     try {
-      const res = await fetch(apiUrl('/api/notifications'), {
+      const res = await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: targetUserId, type, message, link: linkStr })
@@ -456,7 +455,7 @@ export default function App() {
 
     // 2. Server Junction Sync: API post in the background
     try {
-      await fetch(apiUrl('/api/registrations'), {
+      await fetch('/api/registrations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
