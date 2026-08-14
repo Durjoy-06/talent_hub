@@ -127,7 +127,7 @@ export default function OrganizerDashboard({
   // Load organization details from API on mount
   useEffect(() => {
     if (user && user.id) {
-      fetch(`/api/organizations?owner_id=${user.id}`)
+      fetch(apiUrl(`/api/organizations?owner_id=${user.id}`))
         .then(res => res.json())
         .then(data => {
           if (data && data.success && data.organization) {
@@ -273,7 +273,7 @@ export default function OrganizerDashboard({
     }, 4500);
 
     try {
-      const response = await fetch('/api/organizations', {
+      const response = await fetch(apiUrl('/api/organizations'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ export default function OrganizerDashboard({
   const handleDeactivateOrganizationConfirmed = async () => {
     setShowDeactivateDialog(false);
     try {
-      const response = await fetch('/api/organizations/deactivate', {
+      const response = await fetch(apiUrl('/api/organizations/deactivate'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
